@@ -1,0 +1,12 @@
+# package directories
+node_modules
+jspm_packages
+
+# Serverless directories
+.serverless
+
+serverless.yml
+metadata_files/*.json
+
+*.pem
+.DS_Store

@@ -1,0 +1,70 @@
+<html>
+  <head>
+	<link rel="stylesheet" href="https://s3.amazonaws.com/okta.demo.smartfhir/style.css">
+    <script src="https://use.fontawesome.com/421188abd5.js"></script>
+  </head>
+  <body>
+    <div id="consent_body">
+      <form method="POST" action="{{ gateway_url }}/patient_authorization">
+        <input id="auth0_token" name="auth0_token" type="hidden" value="{{ auth0_token }}"></input>
+        <input id="auth0_state" name="auth0_state" type="hidden" value="{{ auth0_state }}"></input>
+        <div id="consent_logo_header">
+          <div>
+            <!-- App logo here -->
+            <img src="{{ app_icon }}"></img>
+          </div>
+          <div class="arrow">
+            <!-- Arrows icon here -->
+            <i class="fa fa-arrows-h fa-4x" aria-hidden="true"></i>
+          </div>
+          <div>
+            <!-- Okta Icon here-->
+            <img src="https://s3.amazonaws.com/okta.demo.smartfhir/oktains_logo.png"></img>
+          </div>
+        </div>
+        <div id="consent_app_names">
+            <h2>
+              Connect {{ app_name }} to your Insurance Account
+            </h2>
+            <h3>
+              Allow {{ app_name }} to access:
+            </h3>
+        </div>
+        <div id="consent_scopes">
+          {% for scope in scopes %}
+            {% if scope.consent == 'REQUIRED' %}
+              <div class="list_item">
+            {% else %}
+              <div class="list_item" style="display:none;">
+            {% endif %}
+                <input type="checkbox" name="scopes" value="{{ scope.name }}" id="{{ scope.name }}" checked="true">
+                <label for="{{ scope.name }}">{{ scope.displayName }}</label>
+              </div>
+
+          {% endfor %}
+        </div>
+
+        {% if show_patient_picker %}
+          <div id="consent_patient_header">
+            <h3>
+              Whose record do you want to allow access to?
+            </h3>
+          </div>
+          <div id="consent_patients">
+              {% for patient in patients %}
+                <div class="list_item">
+                  <input type="radio" id="{{ patient.patient_id }}" name="patient" value="{{ patient.patient_id }}">
+                  <label for="{{ patient.patient_id}}">{{ patient.patient_name }}</label>
+                </div>
+              {% endfor %}
+          </div>
+        {% endif %}
+
+        <button type="submit">
+          Approve
+        </button>
+
+      </form>
+    </div>
+  </body>
+</html>
