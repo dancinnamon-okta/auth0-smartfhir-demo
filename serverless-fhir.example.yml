@@ -1,0 +1,61 @@
+# This is a rough example of using Okta as the authorization server as part of a SMART/FHIR deployment.
+# It includes the following features:
+# - standalone launch with launch parameters
+# - a patient picker screen and OAuth2 scope selection and consent.
+# - applicable proxies for properly handling public client authentication as well as returning launch parameters in a flexible way.
+# - passthrough API endpoints for demo data, hosted by HAPI.org.
+
+service: auth0-fhir-service
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: stg
+  region: us-east-1
+
+  logs:
+    restApi: true
+
+  environment:
+    AUTHZ_SERVICE: example.auth0.com # The custom domain that your smart service will live at.  Also configured as a custom domain in Auth0. smartauth0.zimt.me as an example.
+
+#Lambda functions
+functions:
+
+##METADATA ENDPOINTS
+  smart-config-endpoint:
+    handler: ${self:provider.name}/metadata_endpoints.smartConfigHandler
+    events:
+      - http:
+          path: /smart-configuration
+          method: GET
+          cors: true
+      - http:
+          path: /.well-known/smart-configuration
+          method: GET
+          cors: true
+
+  metadata-endpoint:
+    handler: ${self:provider.name}/metadata_endpoints.metadataHandler
+    events:
+      - http:
+          path: /metadata
+          method: GET
+          cors: true
+
+#############
+#HAPI Proxies
+#############
+      - http:
+          path: /{proxy+}
+          method: ANY
+          cors: true
+          integration: http-proxy
+          request:
+            uri: http://hapi.fhir.org/baseR4/{proxy}
+            parameters:
+              paths:
+                proxy: true
+#################
+#END HAPI Proxies
+#################

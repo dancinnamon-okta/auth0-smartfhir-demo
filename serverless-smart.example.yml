@@ -1,0 +1,73 @@
+# This is a rough example of using Okta as the authorization server as part of a SMART/FHIR deployment.
+# It includes the following features:
+# - standalone launch with launch parameters
+# - a patient picker screen and OAuth2 scope selection and consent.
+# - applicable proxies for properly handling public client authentication as well as returning launch parameters in a flexible way.
+# - passthrough API endpoints for demo data, hosted by HAPI.org.
+
+service: auth0-smart-service
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: stg
+  region: us-east-1
+
+  logs:
+    restApi: true
+
+  environment:
+# The authorization service will be available at this host.
+    GATEWAY_URL: https://example.auth0.com #Your custom domain here-  example: https://smartauth0.zimt.me
+    AUTH0_ORG: _your_auth0_org_here
+
+#OAuth2 clientid/secret used to call Auth0 API during patient picker and for refresh token caching.
+    AUTH0_API_CLIENTID: _API_M2M_CLIENT_ID_
+    AUTH0_API_CLIENTSECRET: _API_M2M_CLIENT_SECRET_
+    REFRESH_TOKEN_HASH_SECRET: YouShouldUseAReallyLongValueHereThisisUsedtoHashRefreshTokens
+
+#ID/key used for signing the tokens to/from Auth0 in communicating via redirect.
+    PICKER_DISPLAY_NAME: Patient Picker
+    PICKER_CLIENT_ID: _PATIENT_PICKER_ID_
+    PICKER_CLIENT_SECRET: _PATIENT_PICKER_SECRET_
+
+#ID of the resource server/API in Auth0 - used to pull scope definitions.
+    FHIR_RESOURCE_SERVER_ID: _FHIR RESOURCE_ID_IN_AUTH0_
+
+#Shared client secret for public apps that are not PKCE enabled.
+    PUBLIC_CLIENT_SECRET: _SHARED_SECRET_FOR_PUBLIC_CLIENTS_
+
+#Lambda functions
+functions:
+
+##TOKEN ENDPOINT
+  smart-token-proxy:
+    handler: ${self:provider.name}/token.tokenHandler
+    events:
+      - http:
+          path: /token
+          method: POST
+          cors: true
+
+##PATIENT PICKER UI
+  patient_picker_get:
+    handler: ${self:provider.name}/patient_picker.patientPickerGetHandler
+    events:
+      - http:
+          path: /patient_authorization
+          method: GET
+
+  patient_picker_post:
+    handler: ${self:provider.name}/patient_picker.patientPickerPostHandler
+    events:
+      - http:
+          path: /patient_authorization
+          method: POST
+
+ ##MOCK PATIENT API
+  mock_patient_service:
+    handler: ${self:provider.name}/mock_patient_service.mockPatientServiceHandler
+    events:
+      - http:
+          path: /patientMockService
+          method: GET
