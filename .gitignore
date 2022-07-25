@@ -11,4 +11,5 @@ metadata_files/*.json
 *.pem
 .DS_Store
 
-.env
+env
+config.json

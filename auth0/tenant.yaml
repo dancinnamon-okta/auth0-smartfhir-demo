@@ -29,7 +29,7 @@ rulesConfigs:
 
 resourceServers:
   - name: Auth0 SMART FHIR Demo API
-    identifier: ##FHIR_BASE_URL##
+    identifier: '##FHIR_BASE_URL##'
     allow_offline_access: true
     enforce_policies: true
     scopes:
@@ -106,24 +106,10 @@ clients:
     sso_disabled: false
     token_endpoint_auth_method: client_secret_post
 
-connections:
-  - name: smartfhir-demo-users
-    strategy: auth0
-    enabled_clients:
-      - Inferno FHIR Test Suite - Confidential
-    is_domain_connection: false
-    options:
-      mfa:
-        active: true
-        return_enroll_settings: true
-      passwordPolicy: good
-      strategy_version: 2
-      brute_force_protection: true
-    realms:
-      - smartfhir-demo-users
-
 tenant:
   default_audience: ##FHIR_BASE_URL##
+  flags: #I need at least 1 flag for validation. Lets use this as it seems low risk to have this setting.
+    disable_clickjack_protection_headers: false 
 
 clientGrants:
   - client_id: Patient Picker Client Credentials
