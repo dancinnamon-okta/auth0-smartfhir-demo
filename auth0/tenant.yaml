@@ -1,0 +1,134 @@
+rules:
+  - name: Initial FHIR Authorize
+    script: ./rules/Initial FHIR Authorize.js
+    stage: login_success
+    enabled: false
+    order: 1
+
+  - name: Process Picker Result
+    script: ./rules/Process Picker Result.js
+    stage: login_success
+    enabled: false
+    order: 2
+
+rulesConfigs:
+  - key: "EXPECTED_AUD"
+    value: '##FHIR_BASE_URL##'
+
+  - key: "PICKER_CLIENT_ID" 
+    value: '##PICKER_CLIENT_ID##'
+
+  - key: "PICKER_CLIENT_SECRET" 
+    value: '##PICKER_CLIENT_SECRET##'
+
+  - key: "PICKER_URL" 
+    value: '##PICKER_URL##'
+
+  - key: "ISSUER"
+    value: 'https://##AUTH0_DOMAIN##'
+
+resourceServers:
+  - name: Auth0 SMART FHIR Demo API
+    identifier: ##FHIR_BASE_URL##
+    allow_offline_access: true
+    enforce_policies: true
+    scopes:
+      - value: launch
+        description: launch
+      - value: launch/patient
+        description: launch/patient
+      - value: user/*.*
+        description: All data that the user is allowed to see
+      - value: patient/*.*
+        description: All access to the current patient
+    signing_alg: RS256
+    skip_consent_for_verifiable_first_party_clients: true
+    token_dialect: access_token_authz
+    token_lifetime: 86400
+    token_lifetime_for_web: 7200
+clients:
+  - name: Patient Picker Client Credentials
+    app_type: non_interactive
+    cross_origin_auth: false
+    custom_login_page_on: true
+    grant_types:
+      - client_credentials
+    is_first_party: true
+    is_token_endpoint_ip_header_trusted: false
+    jwt_configuration:
+      alg: RS256
+      lifetime_in_seconds: 36000
+      secret_encoded: false
+    oidc_conformant: true
+    refresh_token:
+      expiration_type: non-expiring
+      leeway: 0
+      infinite_token_lifetime: true
+      infinite_idle_token_lifetime: true
+      token_lifetime: 31557600
+      idle_token_lifetime: 2592000
+      rotation_type: non-rotating
+    sso_disabled: false
+    token_endpoint_auth_method: client_secret_post
+
+  - name: Inferno FHIR Test Suite - Confidential
+    allowed_clients: []
+    app_type: regular_web
+    callbacks:
+      - https://inferno.healthit.gov/community/oauth2/static/redirect
+    client_aliases: []
+    cross_origin_auth: false
+    custom_login_page_on: true
+    grant_types:
+      - authorization_code
+      - refresh_token
+    is_first_party: true
+    is_token_endpoint_ip_header_trusted: false
+    jwt_configuration:
+      alg: RS256
+      lifetime_in_seconds: 36000
+      secret_encoded: false
+    logo_uri: https://logo.clearbit.com/auth0.com
+    native_social_login:
+      apple:
+        enabled: false
+      facebook:
+        enabled: false
+    oidc_conformant: true
+    refresh_token:
+      expiration_type: non-expiring
+      leeway: 0
+      infinite_token_lifetime: true
+      infinite_idle_token_lifetime: true
+      token_lifetime: 31557600
+      idle_token_lifetime: 2592000
+      rotation_type: non-rotating
+    sso_disabled: false
+    token_endpoint_auth_method: client_secret_post
+
+connections:
+  - name: smartfhir-demo-users
+    strategy: auth0
+    enabled_clients:
+      - Inferno FHIR Test Suite - Confidential
+    is_domain_connection: false
+    options:
+      mfa:
+        active: true
+        return_enroll_settings: true
+      passwordPolicy: good
+      strategy_version: 2
+      brute_force_protection: true
+    realms:
+      - smartfhir-demo-users
+
+tenant:
+  default_audience: ##FHIR_BASE_URL##
+
+clientGrants:
+  - client_id: Patient Picker Client Credentials
+    audience: https://##AUTH0_DOMAIN##/api/v2/
+    scope:
+      - read:clients
+      - read:connections
+      - read:resource_servers
