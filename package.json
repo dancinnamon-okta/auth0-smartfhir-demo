@@ -12,6 +12,8 @@
     "pem-jwk": "^2.0.0"
   },
   "devDependencies": {
-    "serverless": "^3.21.0"
+    "serverless": "^3.21.0",
+    "serverless-certificate-creator": "^1.6.0",
+    "serverless-domain-manager": "^6.0.3"
   }
 }

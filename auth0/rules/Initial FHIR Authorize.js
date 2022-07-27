@@ -20,7 +20,7 @@ function (user, context, callback) {
     const token = createToken(
       configuration.PICKER_CLIENT_ID,
       configuration.PICKER_CLIENT_SECRET,
-      configuration.ISSUER,
+      configuration.CUSTOM_AUTH0_DOMAIN_URL,
       {
         sub: user.user_id,
         requested_client_id: context.clientID,

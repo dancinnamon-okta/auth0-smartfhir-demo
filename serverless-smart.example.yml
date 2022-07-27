@@ -5,7 +5,43 @@
 # - applicable proxies for properly handling public client authentication as well as returning launch parameters in a flexible way.
 # - passthrough API endpoints for demo data, hosted by HAPI.org.
 
-service: auth0-smart-service
+service: auth0-ref-smart-service
+
+plugins:
+  - serverless-certificate-creator
+  - serverless-domain-manager
+
+params:
+  default:
+    #The domain name you want publicly as the base domain name.
+    BASE_DOMAIN: authz.your.tld
+    #Route53 hosted domain (include the period at the end)
+    BASE_URL_TLD: your.tld.
+    #Your auth0 domain name: ex- your_domain.us.auth0.com
+    AUTH0_BASE_DOMAIN: yourauth0domain.region.auth0.com
+    #The auth0 custom backend domain name for auth0 custom domain names.
+    AUTH0_CUSTOM_DOMAIN_NAME_BACKEND: get-value-from-custom-domain-setup.edge.tenants.us.auth0.com
+    #The auth0 custom domain name api key.
+    AUTH0_CUSTOM_DOMAIN_NAME_APIKEY: get this value from a0 custom domain setup
+    #The backend domain name for the api gateway deployment.
+    API_GATEWAY_DOMAIN_NAME_BACKEND: get this value from serverless create_domain output
+
+    #OAuth2 clientid/secret used to call Auth0 API during patient picker and for refresh token caching.
+    AUTH0_API_CLIENTID: Get from patient picker app from a0 console
+    AUTH0_API_CLIENTSECRET: Get from patient picker app from a0 console
+
+    #A hash secret used to hash refresh token contents stored in auth0
+    #Make sure this matches the REFRESH_TOKEN_HASH_SECRET in config.json!
+    REFRESH_TOKEN_HASH_SECRET: YouShouldUseAReallyLongValueHereThisisUsedtoHashRefreshTokens
+
+    #ID/key used for signing the tokens to/from Auth0 in communicating via redirect.
+    PICKER_DISPLAY_NAME: Patient Picker
+    PICKER_CLIENT_ID: Get from patient picker app from a0 console
+    PICKER_CLIENT_SECRET: Get from patient picker app from a0 console
+
+    #ID of the resource server/API in Auth0 - used to pull scope definitions.
+    FHIR_RESOURCE_SERVER_ID: Get from a0 console - get ID of the FHIR API definition
+
 
 provider:
   name: aws
@@ -16,26 +52,20 @@ provider:
   logs:
     restApi: true
 
+
   environment:
-# The authorization service will be available at this host.
-    GATEWAY_URL: https://example.auth0.com #Your custom domain here-  example: https://smartauth0.zimt.me
-    AUTH0_ORG: _your_auth0_org_here
+    GATEWAY_URL: https://${param:BASE_DOMAIN}
+    AUTH0_ORG: ${param:AUTH0_BASE_DOMAIN}
+    AUTH0_API_CLIENTID: ${param:AUTH0_API_CLIENTID}
+    AUTH0_API_CLIENTSECRET: ${param:AUTH0_API_CLIENTSECRET}
+    REFRESH_TOKEN_HASH_SECRET: ${param:REFRESH_TOKEN_HASH_SECRET}
+    PICKER_DISPLAY_NAME: ${param:PICKER_DISPLAY_NAME}
+    PICKER_CLIENT_ID: ${param:PICKER_CLIENT_ID}
+    PICKER_CLIENT_SECRET: ${param:PICKER_CLIENT_SECRET}
+    FHIR_RESOURCE_SERVER_ID: ${param:FHIR_RESOURCE_SERVER_ID}
 
-#OAuth2 clientid/secret used to call Auth0 API during patient picker and for refresh token caching.
-    AUTH0_API_CLIENTID: _API_M2M_CLIENT_ID_
-    AUTH0_API_CLIENTSECRET: _API_M2M_CLIENT_SECRET_
-    REFRESH_TOKEN_HASH_SECRET: YouShouldUseAReallyLongValueHereThisisUsedtoHashRefreshTokens
-
-#ID/key used for signing the tokens to/from Auth0 in communicating via redirect.
-    PICKER_DISPLAY_NAME: Patient Picker
-    PICKER_CLIENT_ID: _PATIENT_PICKER_ID_
-    PICKER_CLIENT_SECRET: _PATIENT_PICKER_SECRET_
-
-#ID of the resource server/API in Auth0 - used to pull scope definitions.
-    FHIR_RESOURCE_SERVER_ID: _FHIR RESOURCE_ID_IN_AUTH0_
-
-#Shared client secret for public apps that are not PKCE enabled.
-    PUBLIC_CLIENT_SECRET: _SHARED_SECRET_FOR_PUBLIC_CLIENTS_
+    #Disable redirect_uri validation.
+    #DISABLE_REDIRECT_URI_VALIDATION: true
 
 #Lambda functions
 functions:
@@ -71,3 +101,148 @@ functions:
       - http:
           path: /patientMockService
           method: GET
+
+custom:
+  customCertificate:
+    certificateName: ${param:BASE_DOMAIN}
+    hostedZoneNames: ${param:BASE_URL_TLD}
+    subjectAlternativeNames:
+      - ${param:BASE_DOMAIN}
+
+  customDomain:
+    domainName: ${param:BASE_DOMAIN}
+    certificateName: ${param:BASE_DOMAIN}
+    basePath: ''
+    stage: ${self:provider.stage}
+    createRoute53Record: false
+    endpointType: regional
+
+resources:
+  Resources:
+    authzServiceCFDistribution:
+      Type: "AWS::CloudFront::Distribution"
+      Properties:
+        DistributionConfig:
+          Aliases:
+          - ${param:BASE_DOMAIN}
+          Origins:
+          - #THIS ONE IS THE API GATEWAY
+            ConnectionAttempts: 3
+            ConnectionTimeout: 10
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginKeepaliveTimeout: 5
+              OriginProtocolPolicy: "https-only"
+              OriginReadTimeout: 30
+              OriginSSLProtocols:
+              - "TLSv1.2"
+            DomainName: ${param:API_GATEWAY_DOMAIN_NAME_BACKEND}
+            Id: ${param:API_GATEWAY_DOMAIN_NAME_BACKEND}
+            OriginPath: ""
+          - #THIS ONE IS AUTH0
+            ConnectionAttempts: 3
+            ConnectionTimeout: 10
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginKeepaliveTimeout: 5
+              OriginProtocolPolicy: "https-only"
+              OriginReadTimeout: 30
+              OriginSSLProtocols:
+              - "TLSv1.2"
+            DomainName: ${param:AUTH0_CUSTOM_DOMAIN_NAME_BACKEND}
+            Id: ${param:AUTH0_CUSTOM_DOMAIN_NAME_BACKEND}
+            OriginCustomHeaders:
+            -
+              HeaderName: "cname-api-key"
+              HeaderValue: ${param:AUTH0_CUSTOM_DOMAIN_NAME_APIKEY}
+            OriginPath: ""
+          DefaultCacheBehavior:
+            AllowedMethods:
+            - "HEAD"
+            - "DELETE"
+            - "POST"
+            - "GET"
+            - "OPTIONS"
+            - "PUT"
+            - "PATCH"
+            CachedMethods:
+            - "HEAD"
+            - "GET"
+            Compress: false
+            DefaultTTL: 86400
+            ForwardedValues:
+              Cookies:
+                Forward: "all"
+              Headers:
+              - "Authorization"
+              - "Origin"
+              - "Accept"
+              - "User-Agent"
+              - "Referer"
+              - "Accept-Language"
+              QueryString: true
+            MaxTTL: 31536000
+            MinTTL: 0
+            SmoothStreaming: false
+            TargetOriginId: ${param:AUTH0_CUSTOM_DOMAIN_NAME_BACKEND}
+            ViewerProtocolPolicy: "redirect-to-https"
+          CacheBehaviors:
+          -
+            AllowedMethods:
+            - "HEAD"
+            - "DELETE"
+            - "POST"
+            - "GET"
+            - "OPTIONS"
+            - "PUT"
+            - "PATCH"
+            Compress: false
+            CachePolicyId: "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+            OriginRequestPolicyId: "216adef6-5c7f-47e4-b989-5492eafa07d3"
+            PathPattern: "/token"
+            SmoothStreaming: false
+            TargetOriginId: ${param:API_GATEWAY_DOMAIN_NAME_BACKEND}
+            ViewerProtocolPolicy: "https-only"
+          -
+            AllowedMethods:
+            - "HEAD"
+            - "DELETE"
+            - "POST"
+            - "GET"
+            - "OPTIONS"
+            - "PUT"
+            - "PATCH"
+            Compress: false
+            CachePolicyId: "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+            OriginRequestPolicyId: "216adef6-5c7f-47e4-b989-5492eafa07d3"
+            PathPattern: "/patient_authorization"
+            SmoothStreaming: false
+            TargetOriginId: ${param:API_GATEWAY_DOMAIN_NAME_BACKEND}
+            ViewerProtocolPolicy: "https-only"
+          -
+            AllowedMethods:
+            - "HEAD"
+            - "GET"
+            - "OPTIONS"
+            Compress: false
+            CachePolicyId: "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+            OriginRequestPolicyId: "216adef6-5c7f-47e4-b989-5492eafa07d3"
+            PathPattern: "/patientMockService"
+            SmoothStreaming: false
+            TargetOriginId: ${param:API_GATEWAY_DOMAIN_NAME_BACKEND}
+            ViewerProtocolPolicy: "https-only"
+          Comment: ""
+          PriceClass: "PriceClass_All"
+          Enabled: true
+          ViewerCertificate:
+            AcmCertificateArn: ${certificate(${self:custom.customCertificate.certificateName}):CertificateArn}
+            MinimumProtocolVersion: "TLSv1.2_2021"
+            SslSupportMethod: "sni-only"
+          Restrictions:
+            GeoRestriction:
+              RestrictionType: "none"
+          HttpVersion: "http2"
+          DefaultRootObject: ""
+          IPV6Enabled: false
