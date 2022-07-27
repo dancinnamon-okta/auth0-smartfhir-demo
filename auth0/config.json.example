@@ -1,9 +1,16 @@
 {
-  "AUTH0_DOMAIN": "YOUR_DOMAIN_HERE.us.auth0.com",
-  "AUTH0_CLIENT_ID": "YOUR A0 API CLIENT_ID HERE",
-  "AUTH0_CLIENT_SECRET": "YOUR A0 API CLIENT SECRET HERE",
-  "AUTH0_KEYWORD_REPLACE_MAPPINGS": { 
-    "AUTH0_TENANT_NAME": "YOUR_DOMAIN_HERE" 
+  "AUTH0_DOMAIN": "yourtenant.region.auth0.com",
+  "AUTH0_CLIENT_ID": "your a0cli client_id here",
+  "AUTH0_CLIENT_SECRET": "your a0cli client_secret here",
+  "AUTH0_KEYWORD_REPLACE_MAPPINGS": {
+    "AUTH0_DOMAIN": "yourtenantagain.region.auth0.com",
+    "CUSTOM_AUTH0_DOMAIN_URL": "https://authz.your.tld",
+    "AUTH0_TENANT_NAME": "yourtenantagain",
+    "FHIR_BASE_URL": "https://fhir.your.tld",
+    "PICKER_CLIENT_ID": "fillthisinafterfirstimport",
+    "PICKER_CLIENT_SECRET": "XXXXXXXXXXfillthisinafterfirstimportXXXXXXXXX",
+    "PICKER_URL": "https://authz.your.tld/patient_authorization",
+    "REFRESH_TOKEN_HASH_SECRET": "YouShouldUseAReallyLongValueHereThisisUsedtoHashRefreshTokens"
   },
   "AUTH0_ALLOW_DELETE": false,
   "AUTH0_EXCLUDED": []
