@@ -14,33 +14,33 @@ plugins:
 params:
   default:
     #The domain name you want publicly as the base domain name.
-    BASE_DOMAIN: authz.your.tld
+    BASE_DOMAIN: auth.moyae-dev.com
     #Route53 hosted domain (include the period at the end)
-    BASE_URL_TLD: your.tld.
+    BASE_URL_TLD: moyae-dev.com.
     #Your auth0 domain name: ex- your_domain.us.auth0.com
-    AUTH0_BASE_DOMAIN: yourauth0domain.region.auth0.com
+    AUTH0_BASE_DOMAIN: smart-moyae-dev.us.auth0.com
     #The auth0 custom backend domain name for auth0 custom domain names.
-    AUTH0_CUSTOM_DOMAIN_NAME_BACKEND: get-value-from-custom-domain-setup.edge.tenants.us.auth0.com
+    AUTH0_CUSTOM_DOMAIN_NAME_BACKEND: smart-moyae-dev-cd-g7wjtavomtmercmq.edge.tenants.us.auth0.com
     #The auth0 custom domain name api key.
-    AUTH0_CUSTOM_DOMAIN_NAME_APIKEY: get this value from a0 custom domain setup
-    #The backend domain name for the api gateway deployment.
-    API_GATEWAY_DOMAIN_NAME_BACKEND: get this value from serverless create_domain output
+    AUTH0_CUSTOM_DOMAIN_NAME_APIKEY: 4a7704ba6d672e9a2388d9e4d132d6cf7f8fd0234aa5aeeacfa8109386f54d6a
+    #The backend domain name for the api gateway deployment. Navigate to api gateway in aws console -> custom domain names -> find the one for the auth endpoint.
+    API_GATEWAY_DOMAIN_NAME_BACKEND: d-9k96code9l.execute-api.us-east-1.amazonaws.com
 
-    #OAuth2 clientid/secret used to call Auth0 API during patient picker and for refresh token caching.
-    AUTH0_API_CLIENTID: Get from patient picker app from a0 console
-    AUTH0_API_CLIENTSECRET: Get from patient picker app from a0 console
+    #OAuth2 clientid/secret used to call Auth0 API during patient picker and for refresh token caching. use the picker ones for now.
+    AUTH0_API_CLIENTID: i8Fx6ipnZSgYugn9XDwoA5zZIXCm42ry
+    AUTH0_API_CLIENTSECRET: eCZEa0nbjAAn9gV63KQ2lm6B1ZEhvhSLRpmowkjHJWJEJf_fqKG8kGO0ywONNJti
 
     #A hash secret used to hash refresh token contents stored in auth0
     #Make sure this matches the REFRESH_TOKEN_HASH_SECRET in config.json!
-    REFRESH_TOKEN_HASH_SECRET: YouShouldUseAReallyLongValueHereThisisUsedtoHashRefreshTokens
+    REFRESH_TOKEN_HASH_SECRET: AnEye4AnEyeMakesTheWholeWorldBlind
 
     #ID/key used for signing the tokens to/from Auth0 in communicating via redirect.
     PICKER_DISPLAY_NAME: Patient Picker
-    PICKER_CLIENT_ID: Get from patient picker app from a0 console
-    PICKER_CLIENT_SECRET: Get from patient picker app from a0 console
+    PICKER_CLIENT_ID: i8Fx6ipnZSgYugn9XDwoA5zZIXCm42ry
+    PICKER_CLIENT_SECRET: eCZEa0nbjAAn9gV63KQ2lm6B1ZEhvhSLRpmowkjHJWJEJf_fqKG8kGO0ywONNJti
 
-    #ID of the resource server/API in Auth0 - used to pull scope definitions.
-    FHIR_RESOURCE_SERVER_ID: Get from a0 console - get ID of the FHIR API definition
+    #ID of the resource server/API in Auth0 - used to pull scope definitions. found in auth0 dashboard. applications => settings.
+    FHIR_RESOURCE_SERVER_ID: 62f33285511974fe2a297991
 
 
 provider:

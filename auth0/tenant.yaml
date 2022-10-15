@@ -43,7 +43,7 @@ rulesConfigs:
     value: '##REFRESH_TOKEN_HASH_SECRET##'
 
 resourceServers:
-  - name: Auth0 SMART FHIR Demo API
+  - name: Auth0 SMART FHIR for API for siteTenant Users
     identifier: '##FHIR_BASE_URL##'
     allow_offline_access: true
     enforce_policies: true
