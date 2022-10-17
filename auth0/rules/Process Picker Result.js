@@ -21,8 +21,7 @@ function (user, context, callback) {
   }
   console.log('Picker Data:');
   console.log(validatedPickerData);
-  const namespace = configuration.CUSTOM_AUTH0_DOMAIN_URL + '/';
-  context.accessToken[namespace + 'launch_response_patient'] = validatedPickerData.patient;
+  context.accessToken['launch_response_patient'] = validatedPickerData.patient;
   context.accessToken.scope = validatedPickerData.scopes;
 
   return callback(null, user, context);
