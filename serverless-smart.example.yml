@@ -63,9 +63,7 @@ provider:
     PICKER_CLIENT_ID: ${param:PICKER_CLIENT_ID}
     PICKER_CLIENT_SECRET: ${param:PICKER_CLIENT_SECRET}
     FHIR_RESOURCE_SERVER_ID: ${param:FHIR_RESOURCE_SERVER_ID}
-
-    #Disable redirect_uri validation.
-    #DISABLE_REDIRECT_URI_VALIDATION: true
+    BASE_DOMAIN: https://${param:BASE_DOMAIN}
 
 #Lambda functions
 functions:
