@@ -63,7 +63,7 @@ provider:
     PICKER_CLIENT_ID: ${param:PICKER_CLIENT_ID}
     PICKER_CLIENT_SECRET: ${param:PICKER_CLIENT_SECRET}
     FHIR_RESOURCE_SERVER_ID: ${param:FHIR_RESOURCE_SERVER_ID}
-    BASE_DOMAIN: https://${param:BASE_DOMAIN}
+    BASE_DOMAIN: ${param:BASE_DOMAIN}
 
 #Lambda functions
 functions:
