@@ -6,6 +6,8 @@ const tokenLib = require('../lib/token')
 module.exports.tokenHandler = async (event, context) => {
 	var handlerResponse = await tokenLib.tokenHandler(event.body, event.headers)
 
+	console.log("this is the final handler Repsonse", JSON.stringify(handlerResponse.body)); 
+
 	return {
 		statusCode: handlerResponse.statusCode,
 		body: JSON.stringify(handlerResponse.body),

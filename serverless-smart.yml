@@ -1,4 +1,4 @@
-# This is a rough example of using Okta as the authorization server as part of a SMART/FHIR deployment.
+# This is a rough example of using auth0 as the authorization server as part of a SMART/FHIR deployment.
 # It includes the following features:
 # - standalone launch with launch parameters
 # - a patient picker screen and OAuth2 scope selection and consent.
@@ -21,6 +21,7 @@ params:
     AUTH0_BASE_DOMAIN: smart-moyae-dev.us.auth0.com
     #The auth0 custom backend domain name for auth0 custom domain names.
     AUTH0_CUSTOM_DOMAIN_NAME_BACKEND: smart-moyae-dev-cd-g7wjtavomtmercmq.edge.tenants.us.auth0.com
+
     #The auth0 custom domain name api key.
     AUTH0_CUSTOM_DOMAIN_NAME_APIKEY: 4a7704ba6d672e9a2388d9e4d132d6cf7f8fd0234aa5aeeacfa8109386f54d6a
     #The backend domain name for the api gateway deployment. Navigate to api gateway in aws console -> custom domain names -> find the one for the auth endpoint.
@@ -40,7 +41,7 @@ params:
     PICKER_CLIENT_SECRET: eCZEa0nbjAAn9gV63KQ2lm6B1ZEhvhSLRpmowkjHJWJEJf_fqKG8kGO0ywONNJti
 
     #ID of the resource server/API in Auth0 - used to pull scope definitions. found in auth0 dashboard. applications => settings.
-    FHIR_RESOURCE_SERVER_ID: 62f33285511974fe2a297991
+    FHIR_RESOURCE_SERVER_ID: 6347c19b8ccf1b30a56dc3c4
 
 
 provider:
@@ -63,6 +64,9 @@ provider:
     PICKER_CLIENT_ID: ${param:PICKER_CLIENT_ID}
     PICKER_CLIENT_SECRET: ${param:PICKER_CLIENT_SECRET}
     FHIR_RESOURCE_SERVER_ID: ${param:FHIR_RESOURCE_SERVER_ID}
+    AUTH0_CUSTOM_DOMAIN_NAME_APIKEY: ${param:AUTH0_CUSTOM_DOMAIN_NAME_APIKEY}
+    AUTH0_CUSTOM_DOMAIN_NAME_BACKEND: ${param:AUTH0_CUSTOM_DOMAIN_NAME_BACKEND}
+    API_GATEWAY_DOMAIN_NAME_BACKEND: ${param:API_GATEWAY_DOMAIN_NAME_BACKEND}
 
     #Disable redirect_uri validation.
     #DISABLE_REDIRECT_URI_VALIDATION: true

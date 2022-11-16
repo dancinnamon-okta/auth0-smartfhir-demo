@@ -16,8 +16,7 @@ function (user, context, callback) {
      if(refreshTokenData && refreshTokenData.launch_response_patient) {
        console.log('Found refresh token data');
        console.log(refreshTokenData);
-       const namespace = configuration.CUSTOM_AUTH0_DOMAIN_URL + '/';
-     	 context.accessToken[namespace + 'launch_response_patient'] = refreshTokenData.launch_response_patient;
+     	 context.accessToken.launch_response_patient = refreshTokenData.launch_response_patient;
      }
   }
   else {

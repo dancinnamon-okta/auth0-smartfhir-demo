@@ -10,7 +10,7 @@ plugins:
 params:
   default:
     #The domain name you want publicly as the base domain name for the FHIR service.
-    FHIR_BASE_DOMAIN: fhir.moyae-dev.com
+    FHIR_BASE_DOMAIN: https://fg93b2lt5i.execute-api.us-east-1.amazonaws.com/dev/tenant/sitetenant  
     #Route53 hosted domain for FHIR service (include the period at the end)
     FHIR_BASE_TLD: moyae-dev.com.
     #Your authz server domain name: ex- authz.your.tld

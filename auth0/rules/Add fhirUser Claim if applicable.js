@@ -7,8 +7,8 @@ function addfhirUserClaim(user, context, callback) {
   console.log(requestedScopes);
 	if(requestedScopes.includes('fhirUser')) 	{
     console.log("Application requested fhirUser scope- including in id_token.");
-    const namespace = configuration.CUSTOM_AUTH0_DOMAIN_URL + '/';
-    context.idToken[namespace + 'fhirUser'] = user.app_metadata.fhirUser;
+    context.idToken.fhirUser = user.app_metadata.fhirUser;
+    context.accessToken.fhirUser = user.app_metadata.fhirUser;
   }
   return callback(null, user, context);
 }
