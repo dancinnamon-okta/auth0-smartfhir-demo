@@ -53,7 +53,7 @@
           <div id="consent_patients">
               {% for patient in patients %}
                 <div class="list_item">
-                  <input type="radio" id="{{ patient.patient_id }}" name="patient" value="{{ patient.patient_id }}">
+                  <input type="checkbox" id="{{ patient.patient_id }}" name="patient" value="{{ patient.patient_id }}">
                   <label for="{{ patient.patient_id}}">{{ patient.patient_name }}</label>
                 </div>
               {% endfor %}
