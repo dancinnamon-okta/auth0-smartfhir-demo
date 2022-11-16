@@ -42,5 +42,7 @@ A more complete onboarding guide is a work in progress- however here are some ge
 - Go into AWS route 53, and add a CNAME for your authz service domain -> CF distribution domain name.
 
 ### Step 4- Test the standalone launch flow
+go to login to auth0 and navigate to Auth Pipeline -> Rules, then turn on all the rules in order to get token proxy running. 
 For a quick test, you can use the ONC inferno test suite.  It has been pre-registered with your auth0 tenant.
+
 
