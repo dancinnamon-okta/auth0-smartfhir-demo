@@ -4,18 +4,6 @@ function (user, context, callback) {
     //If we're on a token refresh, or a callback from the patient picker we don't need this rule.
     return callback(null, user, context);
   }
-
-  console.log('Requested aud:' + context.request.query.aud);
-  console.log('Expected aud:' + configuration.EXPECTED_AUD);
-
-  //We need to ensure the aud value passed in matches our API.
-  if(!context.request.query.aud || context.request.query.aud !== configuration.EXPECTED_AUD) {
-    console.log('An invalid audience was specified on the authorize request.');
-    console.log('Required aud:' + configuration.EXPECTED_AUD);
-    console.log('Actual Aud:' + context.request.query.aud);
-    return callback(new Error('An invalid audience was specified on the authorize request.'));
-  }
-  else {
     //Calculate JWT to send user context to the picker app
     const token = createToken(
       configuration.PICKER_CLIENT_ID,
@@ -32,7 +20,7 @@ function (user, context, callback) {
       url: configuration.PICKER_URL + '?token=' + token
     };
     return callback(null, user, context);
-  }
+  
   function createToken(clientId, clientSecret, issuer, user) {
     const options = {
       expiresInMinutes: 5,
