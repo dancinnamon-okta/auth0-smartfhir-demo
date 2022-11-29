@@ -30,7 +30,7 @@ params:
 
     #OAuth2 clientid/secret used to call Auth0 API during patient picker and for refresh token caching. use the picker ones for now.
     AUTH0_API_CLIENTID: i8Fx6ipnZSgYugn9XDwoA5zZIXCm42ry
-    AUTH0_API_CLIENTSECRET: eCZEa0nbjAAn9gV63KQ2lm6B1ZEhvhSLRpmowkjHJWJEJf_fqKG8kGO0ywONNJti
+    AUTH0_API_CLIENTSECRET: gcomJ0PQhcfysWiv1sR_gCH1ZCEcMk4Jc5DnB1363t8U-WvF6YCFLYZhrbEw0BwM
 
     #A hash secret used to hash refresh token contents stored in auth0
     #Make sure this matches the REFRESH_TOKEN_HASH_SECRET in config.json!
@@ -39,7 +39,7 @@ params:
     #ID/key used for signing the tokens to/from Auth0 in communicating via redirect.
     PICKER_DISPLAY_NAME: Patient Picker
     PICKER_CLIENT_ID: i8Fx6ipnZSgYugn9XDwoA5zZIXCm42ry
-    PICKER_CLIENT_SECRET: eCZEa0nbjAAn9gV63KQ2lm6B1ZEhvhSLRpmowkjHJWJEJf_fqKG8kGO0ywONNJti
+    PICKER_CLIENT_SECRET: gcomJ0PQhcfysWiv1sR_gCH1ZCEcMk4Jc5DnB1363t8U-WvF6YCFLYZhrbEw0BwM
 
     #ID of the resource server/API in Auth0 - used to pull scope definitions. found in auth0 dashboard. applications => settings.
     FHIR_RESOURCE_SERVER_ID: 6347c19b8ccf1b30a56dc3c4
