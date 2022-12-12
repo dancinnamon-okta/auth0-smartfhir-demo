@@ -19,3 +19,4 @@ module.exports.tokenHandler = async (event, context) => {
 		}
 	}
 }
+
