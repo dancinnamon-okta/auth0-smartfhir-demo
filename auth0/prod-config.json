@@ -1,0 +1,18 @@
+{
+    "AUTH0_DOMAIN": "smart-moyae-prod.us.auth0.com",
+    "AUTH0_CLIENT_ID": "vtpt7imjVlYLjvug3YzRDcF89H6Bi4ce",
+    "AUTH0_CLIENT_SECRET": "NnFVJb8to_2jdPpaf_c2kPSVjSIMgne3OJGfdjpIS18dfwTOhN4r4nOKIqlCovYj",
+    "AUTH0_KEYWORD_REPLACE_MAPPINGS": {
+      "AUTH0_DOMAIN": "smart-moyae-prod.us.auth0.com",
+      "CUSTOM_AUTH0_DOMAIN_URL": "https://auth.moyae.com",
+      "AUTH0_TENANT_NAME": "smart-moyae-prod",
+      "FHIR_BASE_URL": "https://twholmbxki.execute-api.us-east-1.amazonaws.com/prod/tenant/",
+      "PICKER_CLIENT_ID": "CSJTzbRk7tF3WLOlexGM9zI3ZkmTuQvj",
+      "PICKER_CLIENT_SECRET": "L_9rvpKJtOE_jODoteZd7s3tyhIctNwztJebQ23wDug7smvo0fxjhbcUGV_KIn_I",
+      "PICKER_URL": "https://auth.moyae.com/patient_authorization",
+      "REFRESH_TOKEN_HASH_SECRET": "AnEye4AnEyeMakesTheWholeWorldBlind"
+    },
+    "AUTH0_ALLOW_DELETE": false,
+    "AUTH0_EXCLUDED": []
+  }
+  
