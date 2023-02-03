@@ -2,25 +2,25 @@ rules:
   - name: Initial FHIR Authorize
     script: ./rules/Initial FHIR Authorize.js
     stage: login_success
-    enabled: false
+    enabled: true
     order: 1
 
   - name: Process Picker Result
     script: ./rules/Process Picker Result.js
     stage: login_success
-    enabled: false
+    enabled: true
     order: 2
 
   - name: Add fhirUser Claim if applicable
     script: ./rules/Add fhirUser Claim if applicable.js
     stage: login_success
-    enabled: false
+    enabled: true
     order: 3
 
   - name: Process Refresh Token
     script: ./rules/Process Refresh Token.js
     stage: login_success
-    enabled: false
+    enabled: true
     order: 4
 
 rulesConfigs:
@@ -156,6 +156,9 @@ clients:
     custom_login_page_on: true
     grant_types:
       - client_credentials
+      - refresh_token
+      - password
+      - authorization_code
     is_first_party: true
     is_token_endpoint_ip_header_trusted: false
     jwt_configuration:

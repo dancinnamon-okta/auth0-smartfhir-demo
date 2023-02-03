@@ -23,7 +23,7 @@ function (user, context, callback) {
   
   function createToken(clientId, clientSecret, issuer, user) {
     const options = {
-      expiresInMinutes: 5,
+      expiresIn: '15m',
       audience: clientId,
       issuer: issuer
     };
