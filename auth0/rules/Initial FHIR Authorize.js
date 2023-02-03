@@ -1,4 +1,5 @@
 function (user, context, callback) {
+  const jwt = require('jsonwebtoken');
   if(context.protocol !== 'oidc-basic-profile') {
     //If we're not on the first /authorize call, then we should skip.
     //If we're on a token refresh, or a callback from the patient picker we don't need this rule.

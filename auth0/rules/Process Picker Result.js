@@ -1,4 +1,5 @@
 function (user, context, callback) {
+  const jwt = require('jsonwebtoken');
   if(context.protocol !== 'redirect-callback') {
     //If we're not in the middle of our callback, do nothing.
     return callback(null, user, context);
