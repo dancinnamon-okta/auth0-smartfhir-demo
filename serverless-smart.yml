@@ -42,7 +42,7 @@ params:
     PICKER_CLIENT_SECRET: gcomJ0PQhcfysWiv1sR_gCH1ZCEcMk4Jc5DnB1363t8U-WvF6YCFLYZhrbEw0BwM
 
     #ID of the resource server/API in Auth0 - used to pull scope definitions. found in auth0 dashboard. applications => settings.
-    FHIR_RESOURCE_SERVER_ID: 6347c19b8ccf1b30a56dc3c4
+    FHIR_RESOURCE_SERVER_ID: 63dd58c9e7b48e489a5e1d21
 
 
 provider:
