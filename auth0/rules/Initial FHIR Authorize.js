@@ -18,7 +18,7 @@ function (user, context, callback) {
     );
     //Redirect to the patient picker.
     context.redirect = {
-      url: configuration.PICKER_URL + '?token=' + token
+      url: configuration.PICKER_URL + `?token=${token}`
     };
     return callback(null, user, context);
   
@@ -28,6 +28,7 @@ function (user, context, callback) {
       audience: clientId,
       issuer: issuer
     };
-    return jwt.sign(user, clientSecret, options);
+    
+    return jwt.sign({...user, tenant: context.request.query.tenant}, clientSecret, options);
   }
 }
