@@ -1,4 +1,8 @@
 function (user, context, callback) {
+  
+  console.log("what is user app_metadata", user.app_metadata); 
+  console.log("what is user user_metadata", user.user_metadata); 
+  
   const jwt = require('jsonwebtoken');
   if(context.protocol !== 'oidc-basic-profile') {
     //If we're not on the first /authorize call, then we should skip.
@@ -13,10 +17,11 @@ function (user, context, callback) {
       {
         sub: user.user_id,
         requested_client_id: context.clientID,
-        requested_scopes: context.request.query.scope
+        requested_scopes: context.request.query.scope, 
+        tenant: user.user_metadata.tenant
       }
     );
-    //Redirect to the patient picker.
+    //Redirect to the patient picker. this is the GET CALL. 
     context.redirect = {
       url: configuration.PICKER_URL + `?token=${token}`
     };
@@ -29,6 +34,8 @@ function (user, context, callback) {
       issuer: issuer
     };
     
-    return jwt.sign({...user, tenant: context.request.query.tenant}, clientSecret, options);
+    console.log("what is the context here", context); 
+    
+    return jwt.sign({...user, tenant: user.tenant}, clientSecret, options);
   }
 }

@@ -37,7 +37,7 @@ params:
     REFRESH_TOKEN_HASH_SECRET: AnEye4AnEyeMakesTheWholeWorldBlind
 
     #ID/key used for signing the tokens to/from Auth0 in communicating via redirect.
-    PICKER_DISPLAY_NAME: Patient Picker
+    PICKER_DISPLAY_NAME: Moyae Login
     PICKER_CLIENT_ID: i8Fx6ipnZSgYugn9XDwoA5zZIXCm42ry
     PICKER_CLIENT_SECRET: gcomJ0PQhcfysWiv1sR_gCH1ZCEcMk4Jc5DnB1363t8U-WvF6YCFLYZhrbEw0BwM
 
