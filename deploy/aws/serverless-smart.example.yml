@@ -13,6 +13,8 @@ plugins:
 
 params:
   default:
+    AWS_REGION: us-east-1
+
     #The domain name you want publicly as the base domain name.
     BASE_DOMAIN: authz.your.tld
     #Route53 hosted domain (include the period at the end)
@@ -35,9 +37,7 @@ params:
     REFRESH_TOKEN_HASH_SECRET: YouShouldUseAReallyLongValueHereThisisUsedtoHashRefreshTokens
 
     #ID/key used for signing the tokens to/from Auth0 in communicating via redirect.
-    PICKER_DISPLAY_NAME: Patient Picker
-    PICKER_CLIENT_ID: Get from patient picker app from a0 console
-    PICKER_CLIENT_SECRET: Get from patient picker app from a0 console
+    CONSENT_REDIRECT_SECRET: YouShouldUseAReallyLongValueHereThisisUsedtoSignJWTSbetweenauth0andpatientpicker
 
     #ID of the resource server/API in Auth0 - used to pull scope definitions.
     FHIR_RESOURCE_SERVER_ID: Get from a0 console - get ID of the FHIR API definition
@@ -45,9 +45,9 @@ params:
 
 provider:
   name: aws
-  runtime: nodejs12.x
-  stage: stg
-  region: us-east-1
+  runtime: nodejs16.x
+  stage: demo
+  region: ${param:AWS_REGION}
 
   logs:
     restApi: true
@@ -59,11 +59,11 @@ provider:
     AUTH0_API_CLIENTID: ${param:AUTH0_API_CLIENTID}
     AUTH0_API_CLIENTSECRET: ${param:AUTH0_API_CLIENTSECRET}
     REFRESH_TOKEN_HASH_SECRET: ${param:REFRESH_TOKEN_HASH_SECRET}
-    PICKER_DISPLAY_NAME: ${param:PICKER_DISPLAY_NAME}
-    PICKER_CLIENT_ID: ${param:PICKER_CLIENT_ID}
-    PICKER_CLIENT_SECRET: ${param:PICKER_CLIENT_SECRET}
+    CONSENT_REDIRECT_SECRET: ${param:CONSENT_REDIRECT_SECRET}
     FHIR_RESOURCE_SERVER_ID: ${param:FHIR_RESOURCE_SERVER_ID}
     BASE_DOMAIN: ${param:BASE_DOMAIN}
+
+    CONSENT_URL: https://${param:BASE_DOMAIN}/patient_authorization
 
 #Lambda functions
 functions:
@@ -77,7 +77,7 @@ functions:
           method: POST
           cors: true
 
-##PATIENT PICKER UI
+##CONSENT UI
   patient_picker_get:
     handler: ${self:provider.name}/patient_picker.patientPickerGetHandler
     events:
@@ -186,6 +186,9 @@ resources:
             SmoothStreaming: false
             TargetOriginId: ${param:AUTH0_CUSTOM_DOMAIN_NAME_BACKEND}
             ViewerProtocolPolicy: "redirect-to-https"
+            FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt audienceRewriteFunction.FunctionMetadata.FunctionARN
           CacheBehaviors:
           -
             AllowedMethods:
@@ -244,3 +247,23 @@ resources:
           HttpVersion: "http2"
           DefaultRootObject: ""
           IPV6Enabled: false
+
+    audienceRewriteFunction:
+      Type: AWS::CloudFront::Function
+      Properties:
+        AutoPublish: true
+        FunctionCode: !Sub |
+          function handler(event) {
+            var request = event.request;
+            var qs = request.querystring;
+
+            if (qs.aud && qs.aud.value) {
+                request.querystring["audience"] = {"value": qs.aud.value};
+            }
+    
+            return request;
+          }
+        FunctionConfig:
+          Runtime: cloudfront-js-1.0
+          Comment: !Sub 'Rewrite aud (SMART) to audience (Auth0)'
+        Name: !Sub "${AWS::StackName}-audienceRewriteFunction"

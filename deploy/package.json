@@ -1,0 +1,15 @@
+{
+  "name": "auth0_smart_fhir_deploy_scripts",
+  "version": "1.0.0",
+  "description": "Scripts intended to ease the process of deploying SMART FHIR with auth0",
+  "main": "deploy_aws.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "auth0": "^3.4.0",
+    "yaml": "^2.2.1"
+  }
+}
