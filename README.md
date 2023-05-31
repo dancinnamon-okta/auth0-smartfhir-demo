@@ -23,6 +23,7 @@ A more complete onboarding guide is a work in progress- however here are some ge
 ### Step 2- Deploy the auth0 resources
 - Setup the auth0 [deploy CLI](https://auth0.com/docs/deploy-monitor/deploy-cli-tool/install-and-configure-the-deploy-cli-tool)
 - Copy /auth0/config.json.example to /auth0/config.json (you can edit this file as a part of the deploy CLI setup too)
+- Navigate to auth0 subfolder `cd /auth0`
 - Deploy the resources to auth0: `a0deploy import --config_file config.json --input_file tenant.yaml`
 - In the auth0 console, in the applications menu, open up the "Patient Picker Client Credentials" application, and copy the client_id, and client_secret values into "PICKER_CLIENT_ID and PICKER_CLIENT_SECRET" in config.json.
 - Redeploy the resources to auth0: `a0deploy import --config_file config.json --input_file tenant.yaml`
@@ -34,11 +35,14 @@ A more complete onboarding guide is a work in progress- however here are some ge
 - Copy serverless-smart.example.yml to serverless-smart.yml
 - Fill out the BASE_DOMAIN, BASE_URL_TLD parameters.
 - Create the certificate in ACM: `sls create-cert --verbose -c serverless-smart.yml`
-- Create the domain configuration: `sls create_domain --verbose -c serverless-smart.yml`
+- Create the domain configuration; also creates custom domain in api-gateway: `sls create_domain --verbose -c serverless-smart.yml`
 - Fill out the remaining parameters in serverless-smart.yml
 - Deploy the authz service: `sls deploy --verbose -c serverless-smart.yml`
 - After deployment is complete, go into AWS cloudfront, and bring up the new distribution that was just created.  Take note of the "distribution domain name".
 - Go into AWS route 53, and add a CNAME for your authz service domain -> CF distribution domain name.
 
 ### Step 4- Test the standalone launch flow
+go to login to auth0 and navigate to Auth Pipeline -> Rules, then turn on all the rules in order to get token proxy running. 
 For a quick test, you can use the ONC inferno test suite.  It has been pre-registered with your auth0 tenant.
+
+

@@ -16,8 +16,8 @@ function (user, context, callback) {
      if(refreshTokenData && refreshTokenData.launch_response_patient) {
        console.log('Found refresh token data');
        console.log(refreshTokenData);
-     	 context.accessToken['launch_response_patient'] = refreshTokenData.launch_response_patient;
-       context.accessToken['scope'] = refreshTokenData.scope;
+     	 context.accessToken.launch_response_patient = refreshTokenData.launch_response_patient;
+       context.accessToken.scope = refreshTokenData.scope;
      }
   }
   else {

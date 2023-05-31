@@ -13,3 +13,5 @@ metadata_files/*.json
 
 env
 config.json
+prod-config.json
+dev-config.json

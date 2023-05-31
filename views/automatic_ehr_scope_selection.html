@@ -1,0 +1,25 @@
+<html>
+  <head>
+	<!-- <link rel="stylesheet" href="https://s3.amazonaws.com/okta.demo.smartfhir/style.css"> -->
+    <script src="https://use.fontawesome.com/421188abd5.js"></script>
+  </head>
+  <body style="background: #293D69; position: fixed; height: 100%; width: 100%; margin: 0px; padding: 0px">
+
+    <script>
+        window.onload = function() {
+          document.getElementById("myForm").submit();
+        };
+    </script>
+
+    {% block content %}
+    <form id="myForm" action="{{ gateway_url }}/patient_authorization" method="POST">
+        <input type="hidden" name="scope" value="{{ scopes }}">
+        <input type="hidden" name="auth0_state" value="{{ auth0_state }}">
+        <input type="hidden" name="auth0_token" value="{{ auth0_token }}">
+        <input type="hidden" name="tenant" value="{{ tenant }}">
+        <button style="display:none;" type="submit">Submit</button>
+    </form>
+    {% endblock %}
+
+  </body>
+</html>

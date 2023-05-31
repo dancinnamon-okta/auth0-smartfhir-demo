@@ -10,11 +10,11 @@ plugins:
 params:
   default:
     #The domain name you want publicly as the base domain name for the FHIR service.
-    FHIR_BASE_DOMAIN: fhir.your.tld
+    FHIR_BASE_DOMAIN: https://twholmbxki.execute-api.us-east-1.amazonaws.com/prod/tenant
     #Route53 hosted domain for FHIR service (include the period at the end)
-    FHIR_BASE_TLD: your.tld.
+    FHIR_BASE_TLD: moyae.com.
     #Your authz server domain name: ex- authz.your.tld
-    AUTHZ_BASE_DOMAIN: authz.your.tld
+    AUTHZ_BASE_DOMAIN: auth.moyae.com
 
 provider:
   name: aws
@@ -83,3 +83,4 @@ custom:
     stage: ${self:provider.stage}
     createRoute53Record: true
     endpointType: regional
+

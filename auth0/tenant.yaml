@@ -2,25 +2,25 @@ rules:
   - name: Initial FHIR Authorize
     script: ./rules/Initial FHIR Authorize.js
     stage: login_success
-    enabled: false
+    enabled: true
     order: 1
 
   - name: Process Picker Result
     script: ./rules/Process Picker Result.js
     stage: login_success
-    enabled: false
+    enabled: true
     order: 2
 
   - name: Add fhirUser Claim if applicable
     script: ./rules/Add fhirUser Claim if applicable.js
     stage: login_success
-    enabled: false
+    enabled: true
     order: 3
 
   - name: Process Refresh Token
     script: ./rules/Process Refresh Token.js
     stage: login_success
-    enabled: false
+    enabled: true
     order: 4
 
 rulesConfigs:
@@ -43,7 +43,7 @@ rulesConfigs:
     value: '##REFRESH_TOKEN_HASH_SECRET##'
 
 resourceServers:
-  - name: Auth0 SMART FHIR Demo API
+  - name: Auth0 SMART FHIR for API for siteTenant Users
     identifier: '##FHIR_BASE_URL##'
     allow_offline_access: true
     enforce_policies: true
@@ -60,6 +60,90 @@ resourceServers:
         description: Access to the current users ID
       - value: patient/*.read
         description: Read access to the current patient
+      - value: patient/Medication.read
+        description: Read access to current patient's medications
+      - value: patient/AllergyIntolerance.read
+        description: Allergy read access for patient
+      - value: patient/CarePlan.read
+        description: CarePlan read access for patient
+      - value: patient/CareTeam.read
+        description: CareTeam read access for patient
+      - value: patient/Condition.read
+        description: Condition read access for patient
+      - value: patient/Device.read
+        description: Device read access for patient
+      - value: patient/DiagnosticReport.read
+        description: DiagnosticReport read access for patient
+      - value: patient/DocumentReference.read
+        description: DocumentReference read access for patient
+      - value: patient/Encounter.read
+        description: Encounter read access for patient
+      - value: patient/Goal.read
+        description: Goal read access for patient
+      - value: patient/Immunization.read
+        description: Immunization read access for patient
+      - value: patient/Location.read
+        description: Location read access for patient
+      - value: patient/MedicationRequest.read
+        description: MedicationRequest read access for patient
+      - value: patient/Observation.read
+        description: Observation read access for patient
+      - value: patient/Organization.read
+        description: Organization read access for patient
+      - value: patient/Patient.read
+        description: Patient read access for patient
+      - value: patient/Practitioner.read
+        description: Practitioner read access for patient
+      - value: patient/Procedure.read
+        description: Procedure read access for patient
+      - value: patient/Provenance.read
+        description: Provenance read access for patient
+      - value: patient/PractitionerRole.read
+        description: PractitionerRole read access for patient
+        
+      - value: user/*.read
+        description: Read access to the current user
+      - value: user/Medication.read
+        description: Read access to current user's medications
+      - value: user/AllergyIntolerance.read
+        description: Allergy read access for current user
+      - value: user/CarePlan.read
+        description: CarePlan read access for current user
+      - value: user/CareTeam.read
+        description: CareTeam read access for current user
+      - value: user/Condition.read
+        description: Condition read access for current user
+      - value: user/Device.read
+        description: Device read access for current user
+      - value: user/DiagnosticReport.read
+        description: DiagnosticReport read access for current user
+      - value: user/DocumentReference.read
+        description: DocumentReference read access for current user
+      - value: user/Encounter.read
+        description: Encounter read access for current user
+      - value: user/Goal.read
+        description: Goal read access for current user
+      - value: user/Immunization.read
+        description: Immunization read access for current user
+      - value: user/Location.read
+        description: Location read access for current user
+      - value: user/MedicationRequest.read
+        description: MedicationRequest read access for current user
+      - value: user/Observation.read
+        description: Observation read access for current user
+      - value: user/Organization.read
+        description: Organization read access for current user
+      - value: user/Patient.read
+        description: Patient read access for current user
+      - value: user/Practitioner.read
+        description: Practitioner read access for current user
+      - value: user/Procedure.read
+        description: Procedure read access for current user
+      - value: user/Provenance.read
+        description: Provenance read access for current user
+      - value: user/PractitionerRole.read
+        description: PractitionerRole read access for current user  
+
     signing_alg: RS256
     skip_consent_for_verifiable_first_party_clients: true
     token_dialect: access_token_authz
@@ -72,6 +156,9 @@ clients:
     custom_login_page_on: true
     grant_types:
       - client_credentials
+      - refresh_token
+      - password
+      - authorization_code
     is_first_party: true
     is_token_endpoint_ip_header_trusted: false
     jwt_configuration:

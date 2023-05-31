@@ -13,6 +13,7 @@ module.exports.patientPickerGetHandler = async (event, context) => {
 }
 
 module.exports.patientPickerPostHandler = async (event, context) => {
+	console.log('got into patientPickerPost Handler', JSON.stringify(event)); 
 	var postResult = await patientPickerLib.postHandler(event.body)
 	return {
 		statusCode: postResult.statusCode,
