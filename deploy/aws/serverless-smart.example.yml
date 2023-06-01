@@ -62,6 +62,8 @@ provider:
     CONSENT_REDIRECT_SECRET: ${param:CONSENT_REDIRECT_SECRET}
     FHIR_RESOURCE_SERVER_ID: ${param:FHIR_RESOURCE_SERVER_ID}
     BASE_DOMAIN: ${param:BASE_DOMAIN}
+    AUTH0_CUSTOM_DOMAIN_NAME_BACKEND: ${param:AUTH0_CUSTOM_DOMAIN_NAME_BACKEND}
+    AUTH0_CUSTOM_DOMAIN_NAME_APIKEY: ${param:AUTH0_CUSTOM_DOMAIN_NAME_APIKEY}
 
     CONSENT_URL: https://${param:BASE_DOMAIN}/patient_authorization
 
@@ -73,20 +75,20 @@ functions:
     handler: ${self:provider.name}/token.tokenHandler
     events:
       - http:
-          path: /token
+          path: /oauth/token
           method: POST
           cors: true
 
 ##CONSENT UI
   patient_picker_get:
-    handler: ${self:provider.name}/patient_picker.patientPickerGetHandler
+    handler: ${self:provider.name}/consent.consentGetHandler
     events:
       - http:
           path: /patient_authorization
           method: GET
 
   patient_picker_post:
-    handler: ${self:provider.name}/patient_picker.patientPickerPostHandler
+    handler: ${self:provider.name}/consent.consentPostHandler
     events:
       - http:
           path: /patient_authorization
@@ -188,7 +190,8 @@ resources:
             ViewerProtocolPolicy: "redirect-to-https"
             FunctionAssociations:
             - EventType: viewer-request
-              FunctionARN: !GetAtt audienceRewriteFunction.FunctionMetadata.FunctionARN
+              FunctionARN: 
+                Fn::GetAtt: audienceRewriteFunction.FunctionMetadata.FunctionARN
           CacheBehaviors:
           -
             AllowedMethods:
@@ -202,7 +205,7 @@ resources:
             Compress: false
             CachePolicyId: "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
             OriginRequestPolicyId: "216adef6-5c7f-47e4-b989-5492eafa07d3"
-            PathPattern: "/token"
+            PathPattern: "/oauth/token"
             SmoothStreaming: false
             TargetOriginId: ${param:API_GATEWAY_DOMAIN_NAME_BACKEND}
             ViewerProtocolPolicy: "https-only"
@@ -252,7 +255,7 @@ resources:
       Type: AWS::CloudFront::Function
       Properties:
         AutoPublish: true
-        FunctionCode: !Sub |
+        FunctionCode: |
           function handler(event) {
             var request = event.request;
             var qs = request.querystring;
@@ -265,5 +268,6 @@ resources:
           }
         FunctionConfig:
           Runtime: cloudfront-js-1.0
-          Comment: !Sub 'Rewrite aud (SMART) to audience (Auth0)'
-        Name: !Sub "${AWS::StackName}-audienceRewriteFunction"
+          Comment: "Rewrite aud (SMART) to audience (Auth0)"
+        Name: 
+          Fn::Sub: "${AWS::StackName}-audienceRewriteFunction"

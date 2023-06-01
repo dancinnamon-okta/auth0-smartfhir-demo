@@ -164,10 +164,9 @@ module.exports.handlers = {
     handle_update_domain_cname: async (rl, state) => {
         console.log('Manual step to update DNS CNAME resolution for your custom domain...')
     
-        console.log(`In an earlier step, you were instructed to create a CNAME for ${state.baseDomain} -> ${state.auth0CustomDomainBackendDomain}. This value must be updated.`)
         
-        console.log(`Current CNAME value for ${state.baseDomain}: ${state.auth0CustomDomainBackendDomain}`)
-        console.log('Open the following URL in your brower, and visit the following URL to determine the new CNAME value:')
+        console.log('Open the following URL in your brower to determine the new CNAME value:')
+        console.log('Note- the goal here is to point your base authorization domain at the cloudfront distribution we\'ve created.')
         console.log(`https://${state.awsRegion}.console.aws.amazon.com/cloudfront/v3/home?region=${state.awsRegion}#/distributions`)
         console.log('Locate the "DomainName" field - it will be similar to: <uniqueid>.cloudfront.net.')
         console.log(`Please update your CNAME record for ${state.baseDomain} to this value.`)
@@ -178,11 +177,10 @@ module.exports.handlers = {
         console.log('Your deployment is complete!')
         console.log('These are details you must provide to your FHIR implementation.')
         console.log('These values must be placed in the FHIR server\'s smart-configuration endpoint')
-        //TODO: UPDATE THESE!
-        console.log(`Issuer: https://${state.baseDomain}/oauth2/${state.authorizationServerId}`)
-        console.log(`Authorize URL: https://${state.baseDomain}/oauth2/${state.authorizationServerId}/smart/v1/authorize`)
-        console.log(`Token URL: https://${state.baseDomain}/oauth2/${state.authorizationServerId}/v1/token`)
-        console.log(`Introspect URL: https://${state.baseDomain}/oauth2/${state.authorizationServerId}/v1/introspect`)
-        console.log(`Keys URL: https://${state.baseDomain}/oauth2/${state.authorizationServerId}/v1/keys`)
+
+        console.log(`Issuer: https://${state.baseDomain}/`)
+        console.log(`Authorize URL: https://${state.baseDomain}/authorize`)
+        console.log(`Token URL: https://${state.baseDomain}/oauth/token`)
+        console.log(`Keys URL: https://${state.baseDomain}/.well-known/jwks.json`)
     }
 }

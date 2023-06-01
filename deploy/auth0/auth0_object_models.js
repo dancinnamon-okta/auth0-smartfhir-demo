@@ -42,6 +42,11 @@ module.exports.sampleConfidentialApp = {
       "idle_token_lifetime": 2592000,
       "rotation_type": "non-rotating"
     },
+    "jwt_configuration": {
+        "alg": "RS256",
+        "lifetime_in_seconds": 36000,
+        "secret_encoded": false
+    },
     "token_endpoint_auth_method": "client_secret_post",
     "app_type": "regular_web",
     "grant_types": [
