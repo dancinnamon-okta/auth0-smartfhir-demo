@@ -1,44 +1,69 @@
 # auth0-smartfhir-demo
-Example of using Auth0 as an authorization server as part of a SMART on FHIR deployment.
+This repository contains all of the components necessary to provide a SMART-launch compatible authorization platform leveraging auth0 as the core identity authentication and authorization service.
+
+# Features
+The following features of the [SMART launch framework v1](http://hl7.org/fhir/smart-app-launch/1.0.0/) and [SMART launch framework v2](http://hl7.org/fhir/smart-app-launch) are supported:
+- Standalone launch sequence
+- Launch parameters- including a patient picker for selecting the in-scope patient
+- Public and Confidential client applications
+- Support for partial consent (OAuth2 downscoping)
+- Asymmetric client authentication for both B2B and B2C use cases
+
+# Components
+This entire project is managed by the [serverless framework](https://www.serverless.com/) - which is an easy way to manage numerous cloud resources as a single unit. The codebase was developed for, and has been primarily tested with AWS technologies.
+This repository includes the following high level endpoints:
+
+- **Patient Selection Screen + Consent:** The patient picker is a small application that enables the end user to select which patient they wish to consent and authorize for. Ultimately the patient picker will be updating the original application's /authorize request to remove the unapproved scopes, and to include the patient id.
+
+- **Token endpoint:** The token endpoint is a lightweight proxy in front of auth0's  /token endpoint, and handles launch responses like launch/patient.
+
+- **All necessary actions/rules within auth0 to support the deployment:** A redirect rule is used within auth0 to bounce the user out to the custom consent screen included in the solution.
 
 ## High Level Onboarding Steps
-A more complete onboarding guide is a work in progress- however here are some general guidelines for deploying this reference implementation of SMART/FHIR with auth0!
+An automated deployment process has been created to help you deploy the solution. All of the steps may be performed manually- however this automated solution helps guide you through the process.  
 
 ### Pre-Steps
- - Determine what domain name you'll be using for your FHIR service
- - Determine what domain name you'll be using for your SMART service
- - Ensure that your top level domain(s) used for your services are managed by AWS Route 53 for automatic deployment
+ - Determine what FHIR service you'd like to secure. This FHIR service must be available already. An example secured fhir proxy may be found [here](https://github.com/dancinnamon-okta/secured-fhir-proxy)
+ - Determine what domain name you'll be using for your SMART authorization service
  - Install and configure the [serverless framework](https://www.serverless.com/framework/docs/getting-started) for your AWS tenant
  
-*Note: The steps outlined in this guide are for the most fully automated onboarding process possible- if other DNS services are used, or other FHIR services are used- applicable existing services may be substituted in (but you're more "on your own")*
+ ## Automated/Guided Deployment
+To assist with the deployment of the overall solution, a guided deployment process has been created! The automated process performs the following high level tasks.
+* Uses a questionnaire to collect pre-requisite information from you
+* Generates configuration files for automatically deploying auth0 resources as well as AWS resources
+* Automatically deploying auth0 configuration
+* Automatically deploying AWS configuration
+* Assists with any manual steps that are necessary, such as any DNS updates that need to be made
 
-### Step 1- Deploy the reference FHIR Service (if you're using it)
-- Copy serverless-fhir.example.yml to serverless-fhir.yml
-- Fill out the FHIR_BASE_DOMAIN, FHIR_BASE_TLD, and AUTHZ_BASE_DOMAIN parameters.
-- Create the certificate in ACM: `sls create-cert --verbose -c serverless-fhir.yml`
-- Create the domain configuration in AWS Route 53: `sls create_domain --verbose -c serverless-fhir.yml`
-- Deploy the FHIR service: `sls deploy --verbose -c serverless-fhir.yml`
-- Test the FHIR service by visiting: https://fhir.yourdomain.tld/.well-known/smart-configuration
+Overall the process is managed in a step-by-step, wizard-like manner with the ability to start/stop the overall process at any point. After each step in the process, the user has the ability to continue, or pause and continue at a later time.
 
-### Step 2- Deploy the auth0 resources
-- Setup the auth0 [deploy CLI](https://auth0.com/docs/deploy-monitor/deploy-cli-tool/install-and-configure-the-deploy-cli-tool)
-- Copy /auth0/config.json.example to /auth0/config.json (you can edit this file as a part of the deploy CLI setup too)
-- Deploy the resources to auth0: `a0deploy import --config_file config.json --input_file tenant.yaml`
-- In the auth0 console, in the applications menu, open up the "Patient Picker Client Credentials" application, and copy the client_id, and client_secret values into "PICKER_CLIENT_ID and PICKER_CLIENT_SECRET" in config.json.
-- Redeploy the resources to auth0: `a0deploy import --config_file config.json --input_file tenant.yaml`
-- [Configure the authz domain name](https://auth0.com/docs/customize/custom-domains/self-managed-certificates#provide-your-domain-name-to-auth0) you've chosen as a custom domain in auth0 (this cannot be automatically done)  
-- When presented with an "origin domain name", and a "cname-api-key" save these values for step 3.
-*Note: After you verify the domain name, you may stop.  Reverse proxy configuration will automatically occur in step 3.*
+Files managed with the deploy script:
+* deploy/work/state - This is a file created by the deploy script that determines what step in the process you're in, is used to start/stop the process, and finally is used to carry configuration information between the steps.
 
-### Step 3- Deploy the SMART proxy resources
-- Copy serverless-smart.example.yml to serverless-smart.yml
-- Fill out the BASE_DOMAIN, BASE_URL_TLD parameters.
-- Create the certificate in ACM: `sls create-cert --verbose -c serverless-smart.yml`
-- Create the domain configuration: `sls create_domain --verbose -c serverless-smart.yml`
-- Fill out the remaining parameters in serverless-smart.yml
-- Deploy the authz service: `sls deploy --verbose -c serverless-smart.yml`
-- After deployment is complete, go into AWS cloudfront, and bring up the new distribution that was just created.  Take note of the "distribution domain name".
-- Go into AWS route 53, and add a CNAME for your authz service domain -> CF distribution domain name.
+* /serverless.'deploymentname'.yml - This file will be generated as a copy of /deploy/aws/serverless.example.yml, with proper configuration obtained during the deployment process.  This may be used for future updates to AWS.
 
-### Step 4- Test the standalone launch flow
-For a quick test, you can use the ONC inferno test suite.  It has been pre-registered with your auth0 tenant.
+### Step 1- Install deployment dependencies
+```bash
+cd deploy
+npm install
+```
+
+### Step 2- Run the deployment script
+```bash
+node deploy.js
+```
+Follow the guided process to finish your deployment!
+
+### Post Deployment Management
+The automated process was created with the intent of easily creating a SMART capable authorization server. It was not intended for ongoing maintenance. For ongoing maintenance, it is recommended to use proper CI/CD pipeline processes and/or other officially released maintenance tools.
+
+**For updates to AWS**
+
+To make updates to AWS resources, the serverless.yaml file generated during initial deployment may be used:
+```bash
+serverless deploy --verbose -c serverless.'deploymentname'.yaml
+```
+
+**For updates to auth0**
+
+To update and maintain auth0 resources, it is recommended to use the [auth0 deploy CLI](https://auth0.com/docs/deploy-monitor/deploy-cli-tool/install-and-configure-the-deploy-cli-tool)
