@@ -14,7 +14,7 @@ function (user, context, callback) {
     return callback(null, user, context);
   }
   else {
-    console.log('SMART launch requested. Redirecting to consent...')
+    console.log('SMART launch requested. Redirecting to consent...');
     //Calculate JWT to send user context to the picker app
     const token = createToken(
       configuration.CONSENT_URL,
@@ -36,10 +36,11 @@ function (user, context, callback) {
   }
   function createToken(audience, signingKey, issuer, consentData) {
     const options = {
-      expiresInMinutes: 5,
+      expiresIn: 300,
       audience: audience,
       issuer: issuer
     };
+    const jwt = require('jsonwebtoken');
     return jwt.sign(consentData, signingKey, options);
   }
 }
