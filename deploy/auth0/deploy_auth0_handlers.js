@@ -27,16 +27,18 @@ module.exports.handlers = {
             state.refreshTokenHashSecret = crypto.randomBytes(64).toString('hex')
         }
 
-        //Deploy our rules and rule configs
-        await createRule(state, auth0, 'Initial FHIR Authorize', './auth0/rules/Initial FHIR Authorize.js')
-        await createRule(state, auth0, 'Process Consent Result', './auth0/rules/Process Consent Result.js')
-        await createRule(state, auth0, 'Process Refresh Token', './auth0/rules/Process Refresh Token.js')
-        await createRule(state, auth0, 'Add fhirUser Claim', './auth0/rules/Add fhirUser Claim.js')
-        await overwriteRuleConfig(auth0, 'SMART_AUD', state.fhirBaseUrl)
-        await overwriteRuleConfig(auth0, 'CONSENT_REDIRECT_SECRET', state.consentRedirectSecret)
-        await overwriteRuleConfig(auth0, 'REFRESH_TOKEN_HASH_SECRET', state.refreshTokenHashSecret)
-        await overwriteRuleConfig(auth0, 'CUSTOM_AUTH0_DOMAIN_URL', `https://${state.baseDomain}`)
-        await overwriteRuleConfig(auth0, 'CONSENT_URL', `https://${state.baseDomain}/patient_authorization`)
+        //Deploy our actions
+        const initialAuthorizeSecrets = [
+            {"name": "SMART_AUD","value": state.fhirBaseUrl},
+            {"name": "CONSENT_REDIRECT_SECRET", "value": state.consentRedirectSecret},
+            {"name": "CONSENT_URL", "value": `https://${state.baseDomain}/patient_authorization`}
+        ]
+        await createAction(state, auth0, 'Initial FHIR Authorize', './auth0/actions/Initial FHIR Authorize.js', initialAuthorizeSecrets)
+
+        const refreshSecrets = [
+            {"name": "REFRESH_TOKEN_HASH_SECRET","value": state.refreshTokenHashSecret}
+        ]
+        await createAction(state, auth0, 'Process Refresh Token', './auth0/actions/Process Refresh Token.js', refreshSecrets)
 
         //Output of detail to go into the platform deployment process.
         console.log('auth0 objects created!')
@@ -258,37 +260,68 @@ async function createApp(auth0, appModel) {
     }
 }
 
-async function createRule(state, auth0, ruleName, ruleSourceCodeFilename) {
-    const deployedRuleName = ruleName += '-' + state.deploymentName
+async function createAction(state, auth0, actionName, actionSourceCodeFilename, secretsArray) {
+    const deployedActionName = actionName += '-' + state.deploymentName
 
-    console.log(`Creating rule: ${deployedRuleName}`)
+    console.log(`Creating action: ${deployedActionName}`)
 
-    const rules = await auth0.getRules()
-    const foundRule = rules.filter(rule => rule.name == deployedRuleName)
+    const foundAction = await auth0.actions.getAll({"actionName": deployedActionName})
 
-    console.debug('Existing rule found:')
-    console.debug(foundRule)
+    console.debug('Existing action found:')
+    console.debug(foundAction)
 
-    if(foundRule.length == 0) {
-        console.log('Creating rule: ' + deployedRuleName)
-        const ruleCode = fs.readFileSync(ruleSourceCodeFilename, 'utf-8')
+    if(foundAction.actions.length == 0) {
+        console.log('Creating action: ' + deployedActionName)
+        const actionCode = fs.readFileSync(actionSourceCodeFilename, 'utf-8')
     
-       const ruleModel = {
-        "name": deployedRuleName,
-        "script": ruleCode
-       }
-       const createdRule = await auth0.createRule(ruleModel)
-        console.log('Rule Created.')
-        console.debug(createdRule)
+        const actionModel = {
+            "name": deployedActionName,
+            "runtime": "node18",
+            "supported_triggers": [{
+                "id": "post-login",
+            }],
+            "code": actionCode,
+            "secrets": secretsArray
+        }
+        var createdAction = await auth0.actions.create(actionModel)
+        const createdActionId = createdAction.id
+        console.log('Action Created.')
+
+        var retryCount = 0
+        while(createdAction.status != 'built' && retryCount < 5) {
+            createdAction = await auth0.actions.get({"id": createdActionId})
+            retryCount++
+        }
+
+        console.log('Deploying action...')
+        await auth0.actions.deploy({"id": createdActionId})
+
+        console.log('Adding action to the beginning of the post login flow...')
+        const existingBindings = await auth0.actions.triggerBindings.getAll({"trigger_id": "post-login"})
+        console.log(existingBindings)
+        var newBindings = [{
+            "ref": {
+                "type": "action_id",
+                "value": createdActionId
+            },
+            "display_name": deployedActionName
+        }]
+        //Add the existing bindings after this one
+        for(var i=0; i < existingBindings.total; i++) {
+            newBindings.push({
+                "ref": {
+                    "type": "binding_id",
+                    "value": existingBindings.bindings[i].id
+                }
+            })
+        }
+
+        await auth0.actions.triggerBindings.patch({"trigger_id": "post-login"},{"bindings": newBindings})
+
     }
     else {
-        console.log(`The rule: ${deployedRuleName} already exists. Skipping create. Please manually delete it first and try again.`)
+        console.log(`The rule: ${deployedActionName} already exists. Skipping create. Please manually delete it first and try again.`)
     }
-}
-
-async function overwriteRuleConfig(auth0, name, value) {
-    console.log(`Setting rule config value for ${name}`)
-    await auth0.setRulesConfig({"key": name}, {"value": value})
 }
 
 async function createSampleUser(state, auth0) {
