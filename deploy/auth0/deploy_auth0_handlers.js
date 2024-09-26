@@ -1,8 +1,10 @@
 const utils = require('../deploy_utils')
 const ManagementClient = require('auth0').ManagementClient;
 const models = require('./auth0_object_models')
+const formModel = require('./forms/smart_consent_form_model')
 const fs = require('fs')
 const crypto = require('crypto')
+const axios = require('axios')
 
 module.exports.handlers = {
     handle_deploy_auth0: async (rl, state) => {
@@ -10,47 +12,36 @@ module.exports.handlers = {
             domain: state.auth0Domain,
             clientId: state.auth0DeployMgmtClientId,
             clientSecret: state.auth0DeployMgmtClientSecret,
-            scope: 'read:clients create:clients read:resource_servers create:resource_servers read:rules create:rules update:rules_configs read:users create:users'
+            scope: 'read:clients create:clients read:resource_servers create:resource_servers read:rules create:rules update:rules_configs read:users create:users read:forms create:forms'
         });
 
         //Deploy our resource server and applications
-        const resourceServerId = await createApi(state, auth0)
+        await createApi(state, auth0)
         const appDetails = await createApps(state, auth0)
-
-        if(!state.consentRedirectSecret) {
-            console.log('Generating strong value for the consent redirect secret...')
-            state.consentRedirectSecret = crypto.randomBytes(64).toString('hex')
-        }
+        const formId = await createForm(state, auth0)
 
         if(!state.refreshTokenHashSecret) {
-            console.log('Generating strong value for the consent redirect secret...')
+            console.log('Generating strong value for signing our refresh tokens...')
             state.refreshTokenHashSecret = crypto.randomBytes(64).toString('hex')
         }
 
         //Deploy our actions
-        const initialAuthorizeSecrets = [
-            {"name": "SMART_AUD","value": state.fhirBaseUrl},
-            {"name": "CONSENT_REDIRECT_SECRET", "value": state.consentRedirectSecret},
-            {"name": "CONSENT_URL", "value": `https://${state.baseDomain}/patient_authorization`}
-        ]
-        await createAction(state, auth0, 'Initial FHIR Authorize', './auth0/actions/Initial FHIR Authorize.js', initialAuthorizeSecrets)
-
-        const refreshSecrets = [
-            {"name": "REFRESH_TOKEN_HASH_SECRET","value": state.refreshTokenHashSecret}
-        ]
+        //Our refresh token action.
+        const refreshSecrets = []
         await createAction(state, auth0, 'Process Refresh Token', './auth0/actions/Process Refresh Token.js', refreshSecrets)
+
+        //Our consent form action.
+        const consentSecrets = [
+            {"name": "FORM_ID", "value": formId},
+            {"name": "DEFAULT_APP_LOGO_URL", "value": state.defaultAppLogo},
+        ]
+        await createAction(state, auth0, 'SMART Consent - Local Patient List', './auth0/actions/SMART Consent - Local Patient List.js', consentSecrets)
 
         //Output of detail to go into the platform deployment process.
         console.log('auth0 objects created!')
         console.log('If you are following the manual, unguided process- please configure the following in your serverless.yml:')
         console.log('--------------------------------------------------------------------------')
-        console.log(`Resource Server ID (FHIR_RESOURCE_SERVER_ID): ${resourceServerId}`)
-        console.log(`Refresh Token Hash Secret (REFRESH_TOKEN_HASH_SECRET): ${state.refreshTokenHashSecret}`)
-        console.log(`Consent Redirect Secret(CONSENT_REDIRECT_SECRET): ${state.consentRedirectSecret}`)
-        console.log('--------------------------------------------------------------------------')
-        console.log('Patient Picker M2M App Details:')
-        console.log(`Patient Picker M2M App Client ID (AUTH0_API_CLIENTID): ${appDetails.apiM2MClientId}`)
-        console.log(`Patient Picker M2M App Client Secret (AUTH0_API_CLIENTSECRET): ${appDetails.apiM2MClientSecret}`)
+        console.log(`Refresh Token Signing Key (REFRESH_TOKEN_SIGNING_KEY): ${state.refreshTokenHashSecret}`)
         console.log('--------------------------------------------------------------------------')
         console.log('--------------------------------------------------------------------------')
         console.log('A sample confidential client application has been created for your convenience.  You may use this with the ONC Inferno test suite:')
@@ -63,10 +54,6 @@ module.exports.handlers = {
             await createSampleUser(state, auth0)
             console.log('Sample user created!')
         }
-
-        state.auth0ApiClientId = appDetails.apiM2MClientId ? appDetails.apiM2MClientId : state.auth0ApiClientId
-        state.auth0ApiClientSecret = appDetails.apiM2MClientSecret ? appDetails.apiM2MClientSecret : state.auth0ApiClientSecret
-        state.fhirResourceServerId = resourceServerId ? resourceServerId : state.fhirResourceServerId
     },
     
     handle_auth0_create_custom_domain: async (rl, state) => {
@@ -176,22 +163,8 @@ async function createApi(state, auth0) {
 //Create Necessary Applications in auth0 for SMART FHIR Reference.
 async function createApps(state, auth0) {
     //First, create the patient picker app.
-    var apiM2MClientModel = models.apiM2MClient
     var sampleConfidentialModel = models.sampleConfidentialApp
-
     sampleConfidentialModel.name += '-' + state.deploymentName
-    apiM2MClientModel.name += '-' + state.deploymentName
-
-    const apiM2MDetails = await createApp(auth0, apiM2MClientModel)
-
-    //If we created the app, go ahead and grant it access to the auth0 management API.
-    if(apiM2MDetails.created) {
-        console.log('API Access Client Created. Granting Okta management API scopes.')
-        var apiM2MClientGrant = models.apiM2MClientGrant
-        apiM2MClientGrant.client_id = apiM2MDetails.id
-        apiM2MClientGrant.audience = `https://${state.auth0Domain}/api/v2/`
-        await auth0.createClientGrant(apiM2MClientGrant)
-    }
 
     const sampleAppDetails = await createApp(auth0, sampleConfidentialModel)
     if(sampleAppDetails.created) {
@@ -217,8 +190,6 @@ async function createApps(state, auth0) {
     }
 
     return {
-        "apiM2MClientId": apiM2MDetails.id,
-        "apiM2MClientSecret": apiM2MDetails.created ? apiM2MDetails.secret : null,
         "sampleAppId": sampleAppDetails.id,
         "sampleAppSecret": sampleAppDetails.created ? sampleAppDetails.secret : null
     }
@@ -321,6 +292,42 @@ async function createAction(state, auth0, actionName, actionSourceCodeFilename, 
     }
     else {
         console.log(`The rule: ${deployedActionName} already exists. Skipping create. Please manually delete it first and try again.`)
+    }
+}
+
+//Temporarily need to call the API directly - I need to update my SDK version for this.
+async function createForm(state, auth0) {
+    console.log('Creating sample form.')
+    const url = `https://${state.auth0Domain}/api/v2/forms`
+    const model = formModel.smartConsentFormModel
+    const deployedFormName = model.name += '-' + state.deploymentName
+    model.name = deployedFormName
+
+    const accessToken = await auth0.tokenProvider.getAccessToken()
+    const forms = await axios.request({
+        "url": url,
+        "method": "get",
+        "headers": {
+            "Authorization": `Bearer ${accessToken}`
+        }
+    })
+    const foundForm = forms.data.filter(form => form.name == deployedFormName)
+    if(foundForm.length == 0) {
+        console.log('Creating Form: ' + deployedFormName)
+        const newForm = await axios.request({
+            "url": url,
+            "method": "post",
+            "headers": {
+                "Authorization": `Bearer ${accessToken}`
+            },
+            "data": model
+        })
+        console.log(`Created new form with id: ${newForm.data.id}`)
+        return newForm.data.id
+    }
+    else {
+        console.log(`The form: ${deployedFormName} already exists. Skipping create. Please manually delete it first and try again.`)
+        return foundForm.id
     }
 }
 

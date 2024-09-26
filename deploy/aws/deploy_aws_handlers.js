@@ -17,6 +17,7 @@ module.exports.handlers = {
         state.auth0Domain = await utils.askPattern(rl, 'What auth0 tenant will you use to secure this FHIR server? (Example: yourtenant.region.auth0.com)', /.+/)
         state.auth0DeployMgmtClientId = await utils.askPattern(rl, 'Please create a machine to machine application in your tenant for use by the deploy script to create required objects.  Enter the client ID for this M2M app here', /.+/)
         state.auth0DeployMgmtClientSecret = await utils.askPattern(rl, 'Enter the client secret for this M2M app here', /.+/)
+        state.defaultAppLogo = await utils.askPattern(rl, 'For client applications that do not register an application logo, a default logo shall be shown instead at consent time. What default logo URL do you wish to use? (Example: https://logo.clearbit.com/okta.com)', /.+/)
 
         const createUser = await utils.askSpecific(rl, 'Would you like to create a sample user account on your auth0 tenant?', ['y','n'])
         if(createUser == 'y') {
@@ -40,18 +41,11 @@ module.exports.handlers = {
         const domainParts = state.baseDomain.split('.')
         serverlessConfig.params.default.BASE_URL_TLD = `${domainParts[domainParts.length - 2]}.${domainParts[domainParts.length - 1]}.`
     
-        serverlessConfig.params.default.AUTH0_BASE_DOMAIN = state.auth0Domain
         serverlessConfig.params.default.AUTH0_CUSTOM_DOMAIN_NAME_BACKEND = state.auth0CustomDomainBackendDomain
         serverlessConfig.params.default.AUTH0_CUSTOM_DOMAIN_NAME_APIKEY = state.auth0CustomDomainApiKey
         serverlessConfig.params.default.API_GATEWAY_DOMAIN_NAME_BACKEND = state.apiGatewayBackendDomain
 
-        serverlessConfig.params.default.AUTH0_API_CLIENTID = state.auth0ApiClientId
-        serverlessConfig.params.default.AUTH0_API_CLIENTSECRET = state.auth0ApiClientSecret
-
-        serverlessConfig.params.default.CONSENT_REDIRECT_SECRET = state.consentRedirectSecret
-        serverlessConfig.params.default.REFRESH_TOKEN_HASH_SECRET = state.refreshTokenHashSecret
-
-        serverlessConfig.params.default.FHIR_RESOURCE_SERVER_ID = state.fhirResourceServerId
+        serverlessConfig.params.default.REFRESH_TOKEN_SIGNING_KEY = state.refreshTokenHashSecret
 
         console.log(`Writing new config file at: ${serverlessConfigFile}`)
         fs.writeFileSync(serverlessConfigFile, YAML.stringify(serverlessConfig), 'utf-8');
