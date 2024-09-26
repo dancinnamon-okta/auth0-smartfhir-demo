@@ -7,6 +7,11 @@
 
 service: auth0-ref-smart-service
 
+package:
+  exclude:
+    - deploy/**
+    - serverless*.yml
+
 plugins:
   - serverless-certificate-creator
   - serverless-domain-manager
@@ -19,8 +24,6 @@ params:
     BASE_DOMAIN: authz.your.tld
     #Route53 hosted domain (include the period at the end)
     BASE_URL_TLD: your.tld.
-    #Your auth0 domain name: ex- your_domain.us.auth0.com
-    AUTH0_BASE_DOMAIN: yourauth0domain.region.auth0.com
     #The auth0 custom backend domain name for auth0 custom domain names.
     AUTH0_CUSTOM_DOMAIN_NAME_BACKEND: get-value-from-custom-domain-setup.edge.tenants.us.auth0.com
     #The auth0 custom domain name api key.
@@ -28,24 +31,13 @@ params:
     #The backend domain name for the api gateway deployment.
     API_GATEWAY_DOMAIN_NAME_BACKEND: get this value from serverless create_domain output
 
-    #OAuth2 clientid/secret used to call Auth0 API during patient picker and for refresh token caching.
-    AUTH0_API_CLIENTID: Get from patient picker app from a0 console
-    AUTH0_API_CLIENTSECRET: Get from patient picker app from a0 console
-
     #A hash secret used to hash refresh token contents stored in auth0
     #Make sure this matches the REFRESH_TOKEN_HASH_SECRET in config.json!
-    REFRESH_TOKEN_HASH_SECRET: YouShouldUseAReallyLongValueHereThisisUsedtoHashRefreshTokens
-
-    #ID/key used for signing the tokens to/from Auth0 in communicating via redirect.
-    CONSENT_REDIRECT_SECRET: YouShouldUseAReallyLongValueHereThisisUsedtoSignJWTSbetweenauth0andpatientpicker
-
-    #ID of the resource server/API in Auth0 - used to pull scope definitions.
-    FHIR_RESOURCE_SERVER_ID: Get from a0 console - get ID of the FHIR API definition
-
+    REFRESH_TOKEN_SIGNING_KEY: YouShouldUseAReallyLongValueHereThisisUsedtoHashRefreshTokens
 
 provider:
   name: aws
-  runtime: nodejs16.x
+  runtime: nodejs18.x
   stage: demo
   region: ${param:AWS_REGION}
 
@@ -54,18 +46,9 @@ provider:
 
 
   environment:
-    GATEWAY_URL: https://${param:BASE_DOMAIN}
-    AUTH0_ORG: ${param:AUTH0_BASE_DOMAIN}
-    AUTH0_API_CLIENTID: ${param:AUTH0_API_CLIENTID}
-    AUTH0_API_CLIENTSECRET: ${param:AUTH0_API_CLIENTSECRET}
-    REFRESH_TOKEN_HASH_SECRET: ${param:REFRESH_TOKEN_HASH_SECRET}
-    CONSENT_REDIRECT_SECRET: ${param:CONSENT_REDIRECT_SECRET}
-    FHIR_RESOURCE_SERVER_ID: ${param:FHIR_RESOURCE_SERVER_ID}
-    BASE_DOMAIN: ${param:BASE_DOMAIN}
+    REFRESH_TOKEN_SIGNING_KEY: ${param:REFRESH_TOKEN_SIGNING_KEY}
     AUTH0_CUSTOM_DOMAIN_NAME_BACKEND: ${param:AUTH0_CUSTOM_DOMAIN_NAME_BACKEND}
     AUTH0_CUSTOM_DOMAIN_NAME_APIKEY: ${param:AUTH0_CUSTOM_DOMAIN_NAME_APIKEY}
-
-    CONSENT_URL: https://${param:BASE_DOMAIN}/patient_authorization
 
 #Lambda functions
 functions:
@@ -78,29 +61,6 @@ functions:
           path: /oauth/token
           method: POST
           cors: true
-
-##CONSENT UI
-  patient_picker_get:
-    handler: ${self:provider.name}/consent.consentGetHandler
-    events:
-      - http:
-          path: /patient_authorization
-          method: GET
-
-  patient_picker_post:
-    handler: ${self:provider.name}/consent.consentPostHandler
-    events:
-      - http:
-          path: /patient_authorization
-          method: POST
-
- ##MOCK PATIENT API
-  mock_patient_service:
-    handler: ${self:provider.name}/mock_patient_service.mockPatientServiceHandler
-    events:
-      - http:
-          path: /patientMockService
-          method: GET
 
 custom:
   customCertificate:
@@ -206,34 +166,6 @@ resources:
             CachePolicyId: "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
             OriginRequestPolicyId: "216adef6-5c7f-47e4-b989-5492eafa07d3"
             PathPattern: "/oauth/token"
-            SmoothStreaming: false
-            TargetOriginId: ${param:API_GATEWAY_DOMAIN_NAME_BACKEND}
-            ViewerProtocolPolicy: "https-only"
-          -
-            AllowedMethods:
-            - "HEAD"
-            - "DELETE"
-            - "POST"
-            - "GET"
-            - "OPTIONS"
-            - "PUT"
-            - "PATCH"
-            Compress: false
-            CachePolicyId: "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
-            OriginRequestPolicyId: "216adef6-5c7f-47e4-b989-5492eafa07d3"
-            PathPattern: "/patient_authorization"
-            SmoothStreaming: false
-            TargetOriginId: ${param:API_GATEWAY_DOMAIN_NAME_BACKEND}
-            ViewerProtocolPolicy: "https-only"
-          -
-            AllowedMethods:
-            - "HEAD"
-            - "GET"
-            - "OPTIONS"
-            Compress: false
-            CachePolicyId: "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
-            OriginRequestPolicyId: "216adef6-5c7f-47e4-b989-5492eafa07d3"
-            PathPattern: "/patientMockService"
             SmoothStreaming: false
             TargetOriginId: ${param:API_GATEWAY_DOMAIN_NAME_BACKEND}
             ViewerProtocolPolicy: "https-only"

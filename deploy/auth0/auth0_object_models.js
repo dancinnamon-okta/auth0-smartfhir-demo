@@ -1,37 +1,16 @@
-
-module.exports.apiM2MClient = {
-    "name": "Patient Picker Client Credentials",
-    "token_endpoint_auth_method": "client_secret_post",
-    "app_type": "non_interactive",
-    "grant_types": [
-        "client_credentials"
-    ]
-}
-
-module.exports.apiM2MClientGrant = {
-    "client_id": "",
-    "audience": "",
-    "scope": [
-    "read:clients",
-    "read:connections",
-    "read:resource_servers",
-    "read:users_app_metadata",
-    "update:users_app_metadata",
-    "delete:users_app_metadata",
-    "create:users_app_metadata",
-    "read:users"
-    ]
-}
-
 module.exports.sampleConfidentialApp = {
     "name": "Inferno FHIR Test Suite - Confidential",
     "callbacks": [
       "https://inferno.healthit.gov/community/oauth2/static/redirect",
-      "https://inferno.healthit.gov/suites/custom/smart/redirect"
+      "https://inferno.healthit.gov/suites/custom/smart/redirect",
+      "https://inferno.healthit.gov/suites/custom/smart_stu2/redirect"
     ],
     "cross_origin_auth": false,
     "is_first_party": true,
     "logo_uri": "https://logo.clearbit.com/healthit.gov",
+    "client_metadata": {
+        "consentLogo":"https://logo.clearbit.com/healthit.gov"
+    },
     "oidc_conformant": true,
     "refresh_token": {
       "expiration_type": "non-expiring",
@@ -72,8 +51,8 @@ module.exports.authzServer = {
     "signing_alg": "RS256",
     "scopes": [
     ],
-    "enforce_policies": true,
-    "token_dialect": "access_token_authz"
+    "enforce_policies": false,
+    "token_dialect": "access_token"
   }
 
   module.exports.authzScopes = [
@@ -117,7 +96,17 @@ module.exports.sampleUser = {
     "password":"",
     "connection":"Username-Password-Authentication",
     "app_metadata": {
-        "fhirUser":""
+        "fhirUser":"",
+        "authorizedPatients": [
+            {
+              "ID": "1234",
+              "Name": "John Doe (55)"
+            },
+            {
+              "ID": "5678",
+              "Name": "Jane Doe (51)"
+            }
+        ]
     }
 }
 

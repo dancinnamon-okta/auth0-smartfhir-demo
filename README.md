@@ -1,6 +1,8 @@
 # auth0-smartfhir-demo
 This repository contains all of the components necessary to provide a SMART-launch compatible authorization platform leveraging auth0 as the core identity authentication and authorization service.
 
+**Note: This repository contains a reference implementation of the SMART launch framework with auth0 as the authorization server. It is intended to be used for reference purposes only! It is not production ready in it's current state.**
+
 # Features
 The following features of the [SMART launch framework v1](http://hl7.org/fhir/smart-app-launch/1.0.0/) and [SMART launch framework v2](http://hl7.org/fhir/smart-app-launch) are supported:
 - Standalone launch sequence
@@ -13,11 +15,11 @@ The following features of the [SMART launch framework v1](http://hl7.org/fhir/sm
 This entire project is managed by the [serverless framework](https://www.serverless.com/) - which is an easy way to manage numerous cloud resources as a single unit. The codebase was developed for, and has been primarily tested with AWS technologies.
 This repository includes the following high level endpoints:
 
-- **Patient Selection Screen + Consent:** The patient picker is a small application that enables the end user to select which patient they wish to consent and authorize for. Ultimately the patient picker will be updating the original application's /authorize request to remove the unapproved scopes, and to include the patient id.
+- **Patient Selection Screen + Consent:** auth0 has a new feature called "forms actions" which has the ability to host advanced consent screens (among many other things). This deployment leverages the robust capabilities of auth0 forms to host the required patient selection screen.
 
 - **Token endpoint:** The token endpoint is a lightweight proxy in front of auth0's  /token endpoint, and handles launch responses like launch/patient.
 
-- **All necessary actions/rules within auth0 to support the deployment:** A redirect rule is used within auth0 to bounce the user out to the custom consent screen included in the solution.
+- **All necessary actions within auth0 to support the deployment:** A redirect rule is used within auth0 to bounce the user out to the custom consent screen included in the solution.
 
 ## High Level Onboarding Steps
 An automated deployment process has been created to help you deploy the solution. All of the steps may be performed manually- however this automated solution helps guide you through the process.  
@@ -42,13 +44,17 @@ Files managed with the deploy script:
 
 * /serverless.'deploymentname'.yml - This file will be generated as a copy of /deploy/aws/serverless.example.yml, with proper configuration obtained during the deployment process.  This may be used for future updates to AWS.
 
-### Step 1- Install deployment dependencies
+### Step 1- Install dependencies
+```bash
+npm install
+```
+### Step 2- Install deployment dependencies (these are only used to configure/deploy- and are not used at runtime.)
 ```bash
 cd deploy
 npm install
 ```
 
-### Step 2- Run the deployment script
+### Step 3- Run the deployment script
 ```bash
 node deploy.js
 ```

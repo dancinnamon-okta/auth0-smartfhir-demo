@@ -10,40 +10,28 @@ exports.onExecutePostLogin = async (event, api) => {
       return;
     }
   
-    const crypto = require('crypto');
-    const secret = event.secrets.REFRESH_TOKEN_HASH_SECRET;
-    const hash = crypto.createHmac('sha256', secret)
-                    .update(event.request.body.refresh_token)
-                    .digest('hex');
+    //Get our passed in launch context if it exists.
+    var launchContext = (event.request.body && event.request.body.launch_context) ? JSON.parse(event.request.body.launch_context) : null
+    const requestedScopes = (event.request.body && event.request.body.scope) ? event.request.body.scope.split(' ') : null
+    const originalScopes = (launchContext && launchContext.scope) ? launchContext.scope : null
+    delete launchContext.scope
   
-    //Take the refresh token we've been passed, hash it, and then look for the hash on the appUser profile.
-    //We'll look up any custom consent details from there.
-    //TODO: should store the consent details JWT vs. just the patient id to prevent tampering by admins. 
-    //Could also just store it externally like I do with Okta CIS.
-    if(event.user.app_metadata.refreshTokenData) {
-        const refreshTokenData = event.user.app_metadata.refreshTokenData.find(o => o.refreshToken === hash);
-        if(refreshTokenData && refreshTokenData.launch_response_patient) {
-            console.log('Found refresh token data');
-            console.log(refreshTokenData);
-            //Selected Patient claim handling.
-            api.accessToken.setCustomClaim('launch_response_patient', refreshTokenData.launch_response_patient);
-    
-            //fhirUser claim handling.
-            //If requested_scopes exists- it means that on refresh the client is trying to narrow the scopes.
-            //This should take precedence, and if the client removes fhirUser from their list on the request, 
-            //we should account for that and no longer include the claim.
-            //Otherwise if the client doesn't send any scopes in at refresh time, we'll load it from cache based upon initial selections.
-            if(event.transaction && event.transaction.requested_scopes) {
-                if(event.transaction.requested_scopes.includes('fhirUser')) {
-                    api.idToken.setCustomClaim('fhirUser', event.user.app_metadata.fhirUser);
-                }
-            }
-            else if(refreshTokenData.scope.includes('fhirUser')) {
-                api.idToken.setCustomClaim('fhirUser', event.user.app_metadata.fhirUser);
-            }
-        }
+    //If we have our launch context, decorate the token with that context.
+    if(launchContext) {
+      for (var claim in launchContext) {
+          api.accessToken.setCustomClaim(`launch_response_${claim}`, launchContext[claim])
+      }
     }
     else {
-      console.log('No cached data found. Skipping...');
+      console.log('No launch context found. Skipping...');
     }
-};
+  
+    //Let's add the fhirUser claim if it's requested and granted.
+    if(requestedScopes && requestedScopes.includes('fhirUser')) {
+      api.idToken.setCustomClaim('fhirUser', event.user.app_metadata.fhirUser);
+    }
+    //Let's add the fhirUser claim if the scope was originally granted, and we didn't request any scopes this time.
+    else if(!requestedScopes && originalScopes && originalScopes.includes('fhirUser')) {
+      api.idToken.setCustomClaim('fhirUser', event.user.app_metadata.fhirUser);
+    }
+  };

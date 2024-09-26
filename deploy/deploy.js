@@ -88,11 +88,8 @@ function initState() {
         sampleUserPassword: '',
         sampleUserType: '',
         sampleUserFhirId: '',
-        auth0ApiClientId: '',
-        auth0ApiClientSecret: '',
-        consentRedirectSecret: '',
         refreshTokenHashSecret: '',
-        fhirResourceServerId: '',
+        defaultAppLogo: '',
         ...additionalStates
     }
 }
