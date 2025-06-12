@@ -3,6 +3,8 @@ This repository contains all of the components necessary to provide a SMART-laun
 
 **Note: This repository contains a reference implementation of the SMART launch framework with auth0 as the authorization server. It is intended to be used for reference purposes only! It is not production ready in it's current state.**
 
+**THIS IS PROVIDED “AS IS” AND “AS AVAILABLE” AND ALL WARRANTIES OF MERCHANTABILITY, FITNESS FOR PARTICULAR PURPOSE, AND NON-INFRINGEMENT ARE DISCLAIMED.**
+
 # Features
 The following features of the [SMART launch framework v1](http://hl7.org/fhir/smart-app-launch/1.0.0/) and [SMART launch framework v2](http://hl7.org/fhir/smart-app-launch) are supported:
 - Standalone launch sequence
